@@ -41,7 +41,7 @@ function TileGrid({
       else if (content) tileClass += " tile-hidden";
 
       tiles.push(
-        <div key={`${col},${row}`} className={tileClass} {...(isPlayer ? { id: "player-tile" } : {})}>
+        <div key={`${col},${row}`} className={tileClass}>
           {isPlayer && <span className="tile-player-marker">&#9670;</span>}
           {!isPlayer && !wasDug && content && (
             <span className="tile-icon">&#10007;</span>
@@ -146,10 +146,7 @@ function App() {
   const [pending, setPending] = useState(false);
   const [username, setUsername] = useState<string>();
   const [autoSpawn, setAutoSpawn] = useState(false);
-  const [digResults, setDigResults] = useState<Record<string, "gold" | "bomb">>({});
-  const [digAnimation, setDigAnimation] = useState<"gold" | "bomb" | null>(null);
-  const [burstKey, setBurstKey] = useState(0);
-  const [burstPos, setBurstPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [digHistory, setDigHistory] = useState<Array<"gold" | "bomb">>([]);
   const controller = connectors[0] as ControllerConnector;
 
   useEffect(() => {
@@ -175,7 +172,7 @@ function App() {
 
   const spawn = useCallback(async () => {
     if (!account) return;
-    setDigResults({});
+    setDigHistory([]);
     setPending(true);
     try {
       await client.actions.spawn(account);
@@ -221,21 +218,11 @@ function App() {
   // Detect dig result when model updates after dig
   useEffect(() => {
     if (!preDig || !player) return;
-    const key = `${preDig.x},${preDig.y}`;
     const dugNow = isDug(player.dug ?? "0x0", preDig.x, preDig.y);
     if (dugNow) {
       const result = (player.gold ?? 0) > preDig.gold ? "gold" as const : "bomb" as const;
-      setDigResults((prev) => ({ ...prev, [key]: result }));
+      setDigHistory((prev) => [...prev, result].slice(-10));
       setPreDig(null);
-      const el = document.getElementById("player-tile");
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        setBurstPos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-      }
-      setDigAnimation(result);
-      setBurstKey((k) => k + 1);
-      const timer = setTimeout(() => setDigAnimation(null), 1000);
-      return () => clearTimeout(timer);
     }
   }, [player?.dug, player?.gold, preDig]);
 
@@ -243,7 +230,7 @@ function App() {
 
   // Clear dig state on level change
   useEffect(() => {
-    setDigResults({});
+    setDigHistory([]);
     setPreDig(null);
   }, [level]);
 
@@ -323,6 +310,16 @@ function App() {
           level={level}
           dug={dug}
         />
+        <div className="dig-history">
+          {Array.from({ length: 10 }).map((_, i) => {
+            const result = digHistory[digHistory.length - 10 + i];
+            return (
+              <span key={i} className={`dig-history-slot${result ? ` dig-${result}` : ""}`}>
+                {result === "gold" ? "💰" : result === "bomb" ? "💣" : ""}
+              </span>
+            );
+          })}
+        </div>
         <CompassRose
           onMove={move}
           onDig={dig}
@@ -330,15 +327,6 @@ function App() {
           canDig={canDig}
         />
         {pending && <span className="pending">...</span>}
-        {digAnimation && (
-          <div className="dig-burst" key={burstKey} style={{ left: burstPos.x, top: burstPos.y }}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <span key={i} className={`dig-particle dig-particle-${i}`}>
-                {digAnimation === "gold" ? "💰" : "💣"}
-              </span>
-            ))}
-          </div>
-        )}
         {isGameOver && (
           <div className="game-over">
             <div className="game-over-card">

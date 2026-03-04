@@ -1,9 +1,5 @@
 import { hash } from "starknet";
 
-export const TILE_EMPTY = 0;
-export const TILE_GOLD = 1;
-export const TILE_MINE = 2;
-
 // Mirrors Cairo's has_content(player, level, x, y) — 20% of tiles have content.
 export function hasContent(
   player: string,

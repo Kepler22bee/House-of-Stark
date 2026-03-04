@@ -39,6 +39,10 @@ mod tests {
         0_felt252.try_into().unwrap()
     }
 
+    fn make_player(player: ContractAddress, x: u8, y: u8, health: u8, gold: u32) -> @Player {
+        @Player { player, x, y, health, gold, level: 1, dug: 0, best: 0 }
+    }
+
     fn setup() -> (dojo::world::WorldStorage, IActionsDispatcher) {
         let ndef = namespace_def();
         let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
@@ -54,36 +58,20 @@ mod tests {
         (world, actions)
     }
 
-    // Find a tile with content for the given player/level.
-    fn find_content_tile(player: ContractAddress, level: u32) -> (u8, u8) {
+    // Find a tile with or without content for the given player/level.
+    fn find_tile(player: ContractAddress, level: u32, want_content: bool) -> (u8, u8) {
         let mut tx: u8 = 0;
         while tx < 10 {
             let mut ty: u8 = 0;
             while ty < 10 {
-                if has_content(player, level, tx, ty) {
+                if has_content(player, level, tx, ty) == want_content {
                     return (tx, ty);
                 }
                 ty += 1;
             };
             tx += 1;
         };
-        panic!("no content tile found")
-    }
-
-    // Find a tile without content for the given player/level.
-    fn find_empty_tile(player: ContractAddress, level: u32) -> (u8, u8) {
-        let mut tx: u8 = 0;
-        while tx < 10 {
-            let mut ty: u8 = 0;
-            while ty < 10 {
-                if !has_content(player, level, tx, ty) {
-                    return (tx, ty);
-                }
-                ty += 1;
-            };
-            tx += 1;
-        };
-        panic!("no empty tile found")
+        panic!("no matching tile found")
     }
 
     // Find a timestamp that produces the desired dig outcome for a given player/tile/level.
@@ -139,7 +127,7 @@ mod tests {
         let (mut world, actions) = setup_spawned();
         world
             .write_model_test(
-                @Player { player: caller(), x: 9, y: 9, health: 100, gold: 0, level: 1, dug: 0, best: 0 },
+                make_player(caller(), 9, 9, 100, 0),
             );
         actions.move(Direction::Right);
         let p: Player = world.read_model(caller());
@@ -155,7 +143,7 @@ mod tests {
         let (mut world, actions) = setup_spawned();
         world
             .write_model_test(
-                @Player { player: caller(), x: 5, y: 5, health: 100, gold: 0, level: 1, dug: 0, best: 0 },
+                make_player(caller(), 5, 5, 100, 0),
             );
 
         actions.move(Direction::Right);
@@ -181,7 +169,7 @@ mod tests {
         let (mut world, actions) = setup_spawned();
         world
             .write_model_test(
-                @Player { player: caller(), x: 5, y: 5, health: 0, gold: 0, level: 1, dug: 0, best: 0 },
+                make_player(caller(), 5, 5, 0, 0),
             );
         actions.move(Direction::Right);
     }
@@ -191,7 +179,7 @@ mod tests {
         let (mut world, actions) = setup_spawned();
         world
             .write_model_test(
-                @Player { player: caller(), x: 0, y: 0, health: 1, gold: 0, level: 1, dug: 0, best: 0 },
+                make_player(caller(), 0, 0, 1, 0),
             );
         actions.move(Direction::Right);
         let p: Player = world.read_model(caller());
@@ -203,10 +191,10 @@ mod tests {
     fn test_dig_empty_tile_panics() {
         let (mut world, actions) = setup_spawned();
         let player = caller();
-        let (ex, ey) = find_empty_tile(player, 1);
+        let (ex, ey) = find_tile(player, 1, false);
         world
             .write_model_test(
-                @Player { player, x: ex, y: ey, health: 100, gold: 0, level: 1, dug: 0, best: 0 },
+                make_player(player, ex, ey, 100, 0),
             );
         actions.dig();
     }
@@ -216,12 +204,12 @@ mod tests {
     fn test_dig_twice_panics() {
         let (mut world, actions) = setup_spawned();
         let player = caller();
-        let (cx, cy) = find_content_tile(player, 1);
+        let (cx, cy) = find_tile(player, 1, true);
         let gold_ts = find_timestamp_for(player, cx, cy, TILE_GOLD, 1);
         starknet::testing::set_block_timestamp(gold_ts);
         world
             .write_model_test(
-                @Player { player, x: cx, y: cy, health: 100, gold: 0, level: 1, dug: 0, best: 0 },
+                make_player(player, cx, cy, 100, 0),
             );
         actions.dig();
         actions.dig(); // should panic
@@ -231,12 +219,12 @@ mod tests {
     fn test_dig_gold() {
         let (mut world, actions) = setup_spawned();
         let player = caller();
-        let (cx, cy) = find_content_tile(player, 1);
+        let (cx, cy) = find_tile(player, 1, true);
         let gold_ts = find_timestamp_for(player, cx, cy, TILE_GOLD, 1);
         starknet::testing::set_block_timestamp(gold_ts);
         world
             .write_model_test(
-                @Player { player, x: cx, y: cy, health: 100, gold: 0, level: 1, dug: 0, best: 0 },
+                make_player(player, cx, cy, 100, 0),
             );
         actions.dig();
         let p: Player = world.read_model(player);
@@ -248,12 +236,12 @@ mod tests {
     fn test_dig_bomb() {
         let (mut world, actions) = setup_spawned();
         let player = caller();
-        let (cx, cy) = find_content_tile(player, 1);
+        let (cx, cy) = find_tile(player, 1, true);
         let bomb_ts = find_timestamp_for(player, cx, cy, TILE_BOMB, 1);
         starknet::testing::set_block_timestamp(bomb_ts);
         world
             .write_model_test(
-                @Player { player, x: cx, y: cy, health: 100, gold: 0, level: 1, dug: 0, best: 0 },
+                make_player(player, cx, cy, 100, 0),
             );
         actions.dig();
         let p: Player = world.read_model(player);
@@ -265,12 +253,12 @@ mod tests {
     fn test_level_up() {
         let (mut world, actions) = setup_spawned();
         let player = caller();
-        let (cx, cy) = find_content_tile(player, 1);
+        let (cx, cy) = find_tile(player, 1, true);
         let gold_ts = find_timestamp_for(player, cx, cy, TILE_GOLD, 1);
         starknet::testing::set_block_timestamp(gold_ts);
         world
             .write_model_test(
-                @Player { player, x: cx, y: cy, health: 50, gold: 90, level: 1, dug: 0, best: 0 },
+                make_player(player, cx, cy, 50, 90),
             );
         actions.dig();
         let p: Player = world.read_model(player);
@@ -285,12 +273,12 @@ mod tests {
     fn test_level_up_gold_accumulates() {
         let (mut world, actions) = setup_spawned();
         let player = caller();
-        let (cx, cy) = find_content_tile(player, 1);
+        let (cx, cy) = find_tile(player, 1, true);
         let gold_ts = find_timestamp_for(player, cx, cy, TILE_GOLD, 1);
         starknet::testing::set_block_timestamp(gold_ts);
         world
             .write_model_test(
-                @Player { player, x: cx, y: cy, health: 50, gold: 95, level: 1, dug: 0, best: 0 },
+                make_player(player, cx, cy, 50, 95),
             );
         actions.dig();
         let p: Player = world.read_model(player);

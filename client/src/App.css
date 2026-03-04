@@ -8,9 +8,6 @@
   --forest: #3a5a40;
   --tile-border: #c9b896;
   --tile-bg: #efe6d0;
-  --gold-bg: #f5e6b8;
-  --bomb-bg: #e8c8c0;
-  --dug-bg: #ddd4c2;
 }
 
 * {
@@ -214,11 +211,6 @@ body {
   line-height: 1;
 }
 
-.tile-icon-dug {
-  opacity: 0.4;
-  font-size: 0.8rem;
-}
-
 /* Tile types */
 .tile-hidden {
   background: var(--tile-hover);
@@ -227,22 +219,6 @@ body {
 .tile-hidden .tile-icon {
   color: var(--ink-muted);
   font-weight: 700;
-}
-
-.tile-gold-dug {
-  background: var(--gold-bg);
-}
-
-.tile-gold-dug .tile-icon {
-  color: var(--amber);
-}
-
-.tile-bomb-dug {
-  background: var(--bomb-bg);
-}
-
-.tile-bomb-dug .tile-icon {
-  color: #8b3030;
 }
 
 /* Player tile */
@@ -324,39 +300,24 @@ body {
   box-shadow: 0 2px 8px #3a5a4040;
 }
 
-/* -- Dig Burst Animation -- */
+/* -- Dig History -- */
 
-.dig-burst {
-  position: fixed;
-  pointer-events: none;
-  z-index: 100;
+.dig-history {
+  display: flex;
+  gap: 2px;
 }
 
-.dig-particle {
-  position: absolute;
-  font-size: 1.6rem;
-  transform: translate(-50%, -50%);
-  animation: dig-fly 0.8s ease-out forwards;
-}
-
-.dig-particle-0 { --dx: 0px;    --dy: -60px; }
-.dig-particle-1 { --dx: 42px;   --dy: -42px; }
-.dig-particle-2 { --dx: 60px;   --dy: 0px; }
-.dig-particle-3 { --dx: 42px;   --dy: 42px; }
-.dig-particle-4 { --dx: 0px;    --dy: 60px; }
-.dig-particle-5 { --dx: -42px;  --dy: 42px; }
-.dig-particle-6 { --dx: -60px;  --dy: 0px; }
-.dig-particle-7 { --dx: -42px;  --dy: -42px; }
-
-@keyframes dig-fly {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.4);
-    opacity: 0;
-  }
+.dig-history-slot {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tile-bg);
+  border: 1px solid var(--tile-border);
+  border-radius: 2px;
+  font-size: 1rem;
+  line-height: 1;
 }
 
 /* -- Game Over Overlay -- */
