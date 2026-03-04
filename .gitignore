@@ -1,0 +1,16 @@
+# Cairo / Dojo
+contracts/target/
+contracts/manifest_dev.json
+
+# Frontend
+client/node_modules/
+client/dist/
+.pnpm-store/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+
+# Context (Conductor)
+.context/

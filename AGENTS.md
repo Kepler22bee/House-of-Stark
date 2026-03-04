@@ -1,24 +1,32 @@
+# Agent Guide
+
+## Documentation
+
+- **Dojo**: https://book.dojoengine.org
+- **Controller**: https://docs.cartridge.gg
+
 ## Skills
-This repo expects agents to use local shared skills by reference (no vendored copies in this repo).
 
-### Available skills (path references)
-- cairo-contracts: /Users/kronosapiens/.agents/skills/cairo-contracts/SKILL.md
-- cairo-deploy: /Users/kronosapiens/.agents/skills/cairo-deploy/SKILL.md
-- cairo-testing: /Users/kronosapiens/.agents/skills/cairo-testing/SKILL.md
-- cairo-security: /Users/kronosapiens/.agents/skills/cairo-security/SKILL.md
-- cairo-optimization: /Users/kronosapiens/.agents/skills/cairo-optimization/SKILL.md
-- controller-cli: /Users/kronosapiens/.agents/skills/controller-cli/SKILL.md
-- frontend-design: /Users/kronosapiens/.agents/skills/frontend-design/SKILL.md
-- find-skills: /Users/kronosapiens/.agents/skills/find-skills/SKILL.md
+This repo uses skills from the [Agent Skills](https://agentskills.io/) ecosystem.
+Skills are installed globally and are not vendored in this repo.
 
-System skills (if present):
-- skill-creator: /Users/kronosapiens/.codex/skills/.system/skill-creator/SKILL.md
-- skill-installer: /Users/kronosapiens/.codex/skills/.system/skill-installer/SKILL.md
+### Available skill packs
 
-## Usage rules
-- If a task clearly matches one of the skills above, use it.
+The following skill packs provide useful reference material for this repo:
+
+- **Dojo** (models, systems, testing, deployment): `npx skills add dojoengine/book`
+- **Controller** (session keys, transactions, CLI): `npx skills add cartridge-gg/docs`
+- **Cairo** (contracts, security, optimization): `npx skills add keep-starknet-strange/starknet-agentic`
+
+### When to suggest installation
+
+If a task would benefit from Dojo, Cairo, or Controller skills and they aren't already installed, offer to install them for the user.
+Skills are helpful but not blocking — if the user declines, continue without them.
+
+### Usage rules
+- If a task clearly matches an installed skill, use it.
 - Read only the necessary sections of a skill file to complete the task.
-- If a referenced skill path is missing/unreadable, continue with best-effort fallback and note it.
+- If a skill is missing and the user declines to install, continue with best-effort fallback and note it.
 
 ## Repository conventions for agents
 - Favor minimal diffs and deterministic outputs.

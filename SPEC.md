@@ -21,13 +21,13 @@ This repository is the default recommendation for new teams.
 - Contracts:
   - 1 namespace: `starter`
   - 1 model: `Position`
-  - 1 system: `actions` with `spawn` and `move`
+  - 1 system: `actions` with `move`
   - Contract tests for core behavior and edge cases
 - Frontend:
   - React + Vite + TypeScript
   - `starknet-react` connect/disconnect
   - Show account + current position
-  - Trigger `spawn` + directional `move`
+  - Trigger directional `move`
   - Basic tx state display (pending/success/failure)
 - Local stack:
   - Katana + Sozo migrate + Torii
@@ -92,13 +92,9 @@ starter/
   - `Position { player: ContractAddress (key), x: u32, y: u32 }`
 - Direction enum:
   - `Left | Right | Up | Down`
-- `spawn()`:
-  - idempotent
-  - initializes to `(0, 0)` if missing
-  - no state change if already spawned
+- No explicit spawn — players begin implicitly at `(0, 0)`.
 - `move(direction)`:
-  - requires spawned player
-  - reverts if player has not spawned
+  - reads current position (defaults to origin for new players)
   - uses saturating math at `u32` bounds
   - emits `Moved(player, direction, x, y)` event
 
@@ -150,12 +146,9 @@ Target usage:
 
 ### Contracts
 Required tests:
-- spawn initializes `(0, 0)`
-- spawn idempotency
+- move from origin (implicit start at `(0, 0)`)
 - move updates each direction correctly
-- move before spawn reverts
-- bound behavior is saturating
-- event emission for move
+- bound behavior is saturating (both zero and `u32::MAX`)
 
 ### Frontend
 Required checks:
@@ -176,9 +169,9 @@ README must include:
 - Troubleshooting (ports, Torii unavailable, wallet issues)
 
 ## Agent Enablement
-- Repo includes `AGENTS.md` with skill references to existing local skill paths.
-- Skills are referenced, not vendored.
-- If a referenced local skill is missing, agent falls back gracefully.
+- Repo includes `AGENTS.md` with references to installable skill packs.
+- Skills are installed globally via `npx skills add`, not vendored.
+- If a referenced skill is missing, agent offers to install it and falls back gracefully if declined.
 
 ## Milestones
 1. M1: contracts scaffold + passing tests
@@ -197,3 +190,19 @@ README must include:
 - richer starter variants (game loop, achievements, etc.)
 - deployment automation for shared environments
 - expanded CI matrix and e2e tests
+
+### Integration Testing
+This repo is intended to serve as a compatibility canary for toolchain releases (katana, torii, sozo, dojo).
+The release process for those tools would clone this repo, bump the version, and run validation.
+
+Design choices that support this:
+- Version pins live in predictable locations: `.tool-versions` and `Scarb.toml`.
+- `Scarb.lock` is committed for reproducibility but should be deleted and regenerated on version bumps.
+- `scripts/check.sh` is the single non-interactive entry point for validation.
+- Contract surface is intentionally minimal to reduce exposure to breaking changes.
+
+Future work:
+- `scripts/bump.sh` to automate version updates across all pin locations.
+- CI job that runs `check.sh` against nightly/pre-release toolchain builds.
+- E2e manifest compatibility check: spin up Katana, migrate, then verify the generated manifest is consumable by `createDojoConfig` (i.e. `world.abi` contains at least one `type: "interface"` entry).
+  This catches version mismatches between the contract toolchain and JS SDK, like the `@dojoengine/core` 1.8.x regression that replaced `world.abi` with `manifest.abis` (undefined in 1.7.x manifests).
