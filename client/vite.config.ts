@@ -6,4 +6,11 @@ import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
   plugins: [react(), wasm(), topLevelAwait(), mkcert()],
+  optimizeDeps: {
+    include: [
+      "@dojoengine/sdk",
+      "@dojoengine/sdk > @dojoengine/torii-wasm",
+      "@dojoengine/sdk > @dojoengine/torii-client",
+    ],
+  },
 });

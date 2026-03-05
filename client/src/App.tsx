@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { KeysClause, ToriiQueryBuilder } from "@dojoengine/sdk";
 import {
   useDojoSDK,
@@ -156,17 +156,21 @@ function App() {
 
   const entityId = useEntityId(address ?? "0");
 
-  useEntityQuery(
-    new ToriiQueryBuilder()
-      .withClause(
-        KeysClause(
-          [ModelsMapping.Player],
-          [address ? addAddressPadding(address) : undefined],
-          "FixedLen"
-        ).build()
-      )
-      .includeHashedKeys()
+  const playerQuery = useMemo(
+    () =>
+      new ToriiQueryBuilder()
+        .withClause(
+          KeysClause(
+            [ModelsMapping.Player],
+            [address ? addAddressPadding(address) : undefined],
+            "FixedLen"
+          ).build()
+        )
+        .includeHashedKeys(),
+    [address]
   );
+
+  useEntityQuery(playerQuery);
 
   const player = useModel(entityId as string, ModelsMapping.Player);
 

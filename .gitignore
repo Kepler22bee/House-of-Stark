@@ -1,6 +1,7 @@
 # Cairo / Dojo
 contracts/target/
 contracts/manifest_dev.json
+.snfoundry_cache/
 
 # Frontend
 client/node_modules/

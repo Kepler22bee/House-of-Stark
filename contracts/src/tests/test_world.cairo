@@ -1,27 +1,30 @@
 #[cfg(test)]
 mod tests {
-    use dojo_cairo_test::WorldStorageTestTrait;
     use dojo::model::{ModelStorage, ModelStorageTest};
-    use dojo::world::{WorldStorageTrait, world};
-    use dojo_cairo_test::{
+    use dojo::world::WorldStorageTrait;
+    use dojo_snf_test::{
         spawn_test_world, NamespaceDef, TestResource, ContractDefTrait, ContractDef,
+        WorldStorageTestTrait,
     };
+    use snforge_std::{start_cheat_block_timestamp_global, start_cheat_caller_address};
     use starknet::ContractAddress;
 
-    use starter::systems::actions::{actions, IActionsDispatcher, IActionsDispatcherTrait};
+    use starter::systems::actions::{IActionsDispatcher, IActionsDispatcherTrait};
     use starter::systems::actions::{has_content, dig_outcome, Tile};
-    use starter::models::{Player, m_Player, Direction};
+    use starter::models::{Player, Direction};
+
+    const PLAYER: felt252 = 'PLAYER';
 
     fn namespace_def() -> NamespaceDef {
         NamespaceDef {
             namespace: "starter",
             resources: [
-                TestResource::Model(m_Player::TEST_CLASS_HASH),
-                TestResource::Event(actions::e_Moved::TEST_CLASS_HASH),
-                TestResource::Event(actions::e_Dug::TEST_CLASS_HASH),
-                TestResource::Event(actions::e_LevelUp::TEST_CLASS_HASH),
-                TestResource::Event(actions::e_GameOver::TEST_CLASS_HASH),
-                TestResource::Contract(actions::TEST_CLASS_HASH),
+                TestResource::Model("Player"),
+                TestResource::Event("Moved"),
+                TestResource::Event("Dug"),
+                TestResource::Event("LevelUp"),
+                TestResource::Event("GameOver"),
+                TestResource::Contract("actions"),
             ]
                 .span(),
         }
@@ -36,7 +39,7 @@ mod tests {
     }
 
     fn caller() -> ContractAddress {
-        0_felt252.try_into().unwrap()
+        PLAYER.try_into().unwrap()
     }
 
     fn make_player(player: ContractAddress, x: u8, y: u8, health: u8, gold: u32) -> @Player {
@@ -45,10 +48,11 @@ mod tests {
 
     fn setup() -> (dojo::world::WorldStorage, IActionsDispatcher) {
         let ndef = namespace_def();
-        let mut world = spawn_test_world(world::TEST_CLASS_HASH, [ndef].span());
+        let mut world = spawn_test_world([ndef].span());
         world.sync_perms_and_inits(contract_defs());
         let (contract_address, _) = world.dns(@"actions").unwrap();
         let actions = IActionsDispatcher { contract_address };
+        start_cheat_caller_address(contract_address, caller());
         (world, actions)
     }
 
@@ -164,7 +168,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected: ("game over", 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: "game over")]
     fn test_move_when_dead_panics() {
         let (mut world, actions) = setup_spawned();
         world
@@ -187,7 +191,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected: ("nothing here", 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: "nothing here")]
     fn test_dig_empty_tile_panics() {
         let (mut world, actions) = setup_spawned();
         let player = caller();
@@ -200,13 +204,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected: ("already dug", 'ENTRYPOINT_FAILED'))]
+    #[should_panic(expected: "already dug")]
     fn test_dig_twice_panics() {
         let (mut world, actions) = setup_spawned();
         let player = caller();
         let (cx, cy) = find_tile(player, 1, true);
         let gold_ts = find_timestamp_for(player, cx, cy, Tile::Gold, 1);
-        starknet::testing::set_block_timestamp(gold_ts);
+        start_cheat_block_timestamp_global(gold_ts);
         world
             .write_model_test(
                 make_player(player, cx, cy, 100, 0),
@@ -221,7 +225,7 @@ mod tests {
         let player = caller();
         let (cx, cy) = find_tile(player, 1, true);
         let gold_ts = find_timestamp_for(player, cx, cy, Tile::Gold, 1);
-        starknet::testing::set_block_timestamp(gold_ts);
+        start_cheat_block_timestamp_global(gold_ts);
         world
             .write_model_test(
                 make_player(player, cx, cy, 100, 0),
@@ -238,7 +242,7 @@ mod tests {
         let player = caller();
         let (cx, cy) = find_tile(player, 1, true);
         let bomb_ts = find_timestamp_for(player, cx, cy, Tile::Bomb, 1);
-        starknet::testing::set_block_timestamp(bomb_ts);
+        start_cheat_block_timestamp_global(bomb_ts);
         world
             .write_model_test(
                 make_player(player, cx, cy, 100, 0),
@@ -255,7 +259,7 @@ mod tests {
         let player = caller();
         let (cx, cy) = find_tile(player, 1, true);
         let gold_ts = find_timestamp_for(player, cx, cy, Tile::Gold, 1);
-        starknet::testing::set_block_timestamp(gold_ts);
+        start_cheat_block_timestamp_global(gold_ts);
         world
             .write_model_test(
                 make_player(player, cx, cy, 50, 90),
@@ -275,7 +279,7 @@ mod tests {
         let player = caller();
         let (cx, cy) = find_tile(player, 1, true);
         let gold_ts = find_timestamp_for(player, cx, cy, Tile::Gold, 1);
-        starknet::testing::set_block_timestamp(gold_ts);
+        start_cheat_block_timestamp_global(gold_ts);
         world
             .write_model_test(
                 make_player(player, cx, cy, 50, 95),
