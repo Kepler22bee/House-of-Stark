@@ -1,10 +1,11 @@
 "use client";
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import { createPlayer, updatePlayer, Player, getFacingTile, MapData } from "./player";
 import { renderGame, SceneData } from "./renderer";
 import { npcs, NPC, gameMap, MAP_WIDTH, MAP_HEIGHT, tileInteractions } from "./map";
 import { casinoMap, CASINO_MAP_WIDTH, CASINO_MAP_HEIGHT, casinoNpcs, casinoTileInteractions } from "./casino-map";
 import { TILE_INFO, TileType, TILE_SIZE } from "./tiles";
+import CoinTossOverlay from "./CoinTossOverlay";
 
 interface DialogueState {
   active: boolean;
@@ -128,8 +129,10 @@ export default function GameCanvas() {
   const sceneRef = useRef<Scene>("overworld");
   const casinoIntroRef = useRef<IntroState>({ active: false, line: 0, dismissed: false });
   const agentMenuRef = useRef<AgentMenuState>({ active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 });
-  // Store overworld position to restore when exiting casino
   const overworldPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // React state for game overlays (so React components render)
+  const [activeGameScreen, setActiveGameScreen] = useState<"coin_toss" | "price_prediction" | null>(null);
 
   const getActiveMap = useCallback((): { map: number[][]; width: number; height: number } => {
     if (sceneRef.current === "casino") {
@@ -179,6 +182,7 @@ export default function GameCanvas() {
     // Handle game screen dismiss
     if (gameScreenRef.current.active) {
       gameScreenRef.current = { active: false, type: null };
+      setActiveGameScreen(null);
       return;
     }
 
@@ -243,10 +247,9 @@ export default function GameCanvas() {
       if (tile === TileType.CASINO_TABLE && sceneRef.current === "casino") {
         // Left tables (cols 3-5) = coin toss, right tables (cols 55-57) = price prediction
         const isLeftSide = tx < 30;
-        gameScreenRef.current = {
-          active: true,
-          type: isLeftSide ? "coin_toss" : "price_prediction",
-        };
+        const gameType = isLeftSide ? "coin_toss" as const : "price_prediction" as const;
+        gameScreenRef.current = { active: true, type: gameType };
+        setActiveGameScreen(gameType);
         return;
       }
 
@@ -286,6 +289,11 @@ export default function GameCanvas() {
           const idx = tabs.indexOf(agentMenuRef.current.tab);
           agentMenuRef.current.tab = tabs[(idx + 1) % tabs.length];
         }
+        return;
+      }
+      if (e.key === "Escape" && gameScreenRef.current.active) {
+        gameScreenRef.current = { active: false, type: null };
+        setActiveGameScreen(null);
         return;
       }
       if (e.key === "e" || e.key === "E" || e.key === "Enter" || e.key === " ") {
@@ -409,7 +417,7 @@ export default function GameCanvas() {
             ? { line: casinoIntroRef.current.line, lines: CASINO_INTRO_LINES }
             : null,
         sceneData,
-        gameScreenRef.current.active ? gameScreenRef.current.type : null,
+        null, // Game screens are now React overlays, not canvas-drawn
         agentMenuRef.current.active ? agentMenuRef.current : null,
       );
 
@@ -426,20 +434,75 @@ export default function GameCanvas() {
     };
   }, [tryInteract, getActiveMap, getActiveNpcs]);
 
+  const closeGameScreen = useCallback(() => {
+    gameScreenRef.current = { active: false, type: null };
+    setActiveGameScreen(null);
+  }, []);
+
   return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        display: "block",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        background: "#0a0a0a",
-        imageRendering: "pixelated",
-        cursor: "default",
-      }}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        style={{
+          display: "block",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          background: "#0a0a0a",
+          imageRendering: "pixelated",
+          cursor: "default",
+        }}
+      />
+      {activeGameScreen === "coin_toss" && (
+        <CoinTossOverlay onClose={closeGameScreen} />
+      )}
+      {activeGameScreen === "price_prediction" && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 100,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.75)",
+          }}
+        >
+          <div
+            style={{
+              background: "#0a0a14",
+              border: "2px solid #00d2ff",
+              borderRadius: 12,
+              padding: "40px",
+              textAlign: "center",
+              fontFamily: "'Courier New', monospace",
+            }}
+          >
+            <h2 style={{ color: "#00d2ff", fontSize: 24, marginBottom: 8 }}>
+              PRICE PREDICTION
+            </h2>
+            <p style={{ color: "#555", fontSize: 16, marginBottom: 20 }}>
+              Coming Soon
+            </p>
+            <button
+              onClick={closeGameScreen}
+              style={{
+                padding: "8px 24px",
+                background: "#111",
+                border: "1px solid #00d2ff",
+                borderRadius: 6,
+                color: "#00d2ff",
+                cursor: "pointer",
+                fontFamily: "'Courier New', monospace",
+              }}
+            >
+              Close [E]
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

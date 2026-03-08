@@ -7,10 +7,6 @@ pub mod systems {
     pub mod event_relayer;
 }
 
-pub mod mocks {
-    pub mod mock_vrf;
-}
-
 #[cfg(test)]
 mod tests {
     pub mod test_coin_toss;

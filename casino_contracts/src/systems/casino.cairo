@@ -2,6 +2,15 @@ use starknet::ContractAddress;
 
 #[starknet::interface]
 pub trait ICasino<T> {
+    fn initialize(
+        ref self: T,
+        owner: ContractAddress,
+        token_address: ContractAddress,
+        fee_token: ContractAddress,
+        coin_toss: ContractAddress,
+        event_relayer: ContractAddress,
+        context_address: Option<ContractAddress>,
+    );
     fn place_bet(ref self: T, choice: u8, player_name: Option<felt252>) -> u64;
     fn settle(ref self: T, token_id: u64);
     fn deposit(ref self: T, amount: u256);
@@ -9,11 +18,13 @@ pub trait ICasino<T> {
     fn house_balance(self: @T) -> u256;
     fn bet_amount(self: @T, token_id: u64) -> u256;
     fn coin_toss_address(self: @T) -> ContractAddress;
+    fn event_relayer_address(self: @T) -> ContractAddress;
 }
 
-#[starknet::contract]
+#[dojo::contract]
 pub mod casino {
     use super::ICasino;
+    use crate::systems::event_relayer::{IEventRelayerDispatcher, IEventRelayerDispatcherTrait};
     use starknet::{ContractAddress, get_caller_address, get_contract_address};
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
@@ -46,9 +57,11 @@ pub mod casino {
         metagame: MetagameComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
+        initialized: bool,
         owner: ContractAddress,
         fee_token: ContractAddress,
         coin_toss: ContractAddress,
+        event_relayer: ContractAddress,
         house_balance: u256,
         bets: Map<u64, u256>,           // token_id -> bet amount
         bet_player: Map<u64, ContractAddress>, // token_id -> player
@@ -64,23 +77,25 @@ pub mod casino {
         SRC5Event: SRC5Component::Event,
     }
 
-    #[constructor]
-    fn constructor(
-        ref self: ContractState,
-        owner: ContractAddress,
-        token_address: ContractAddress,
-        fee_token: ContractAddress,
-        coin_toss: ContractAddress,
-        context_address: Option<ContractAddress>,
-    ) {
-        self.metagame.initializer(context_address, token_address);
-        self.owner.write(owner);
-        self.fee_token.write(fee_token);
-        self.coin_toss.write(coin_toss);
-    }
-
     #[abi(embed_v0)]
     impl CasinoImpl of ICasino<ContractState> {
+        fn initialize(
+            ref self: ContractState,
+            owner: ContractAddress,
+            token_address: ContractAddress,
+            fee_token: ContractAddress,
+            coin_toss: ContractAddress,
+            event_relayer: ContractAddress,
+            context_address: Option<ContractAddress>,
+        ) {
+            assert!(!self.initialized.read(), "Already initialized");
+            self.initialized.write(true);
+            self.metagame.initializer(context_address, token_address);
+            self.owner.write(owner);
+            self.fee_token.write(fee_token);
+            self.coin_toss.write(coin_toss);
+            self.event_relayer.write(event_relayer);
+        }
         /// Player places a bet and receives a game token.
         /// Requires prior ERC20 approval of DEFAULT_BET to this contract.
         fn place_bet(ref self: ContractState, choice: u8, player_name: Option<felt252>) -> u64 {
@@ -118,6 +133,12 @@ pub mod casino {
             self.bets.write(token_id, DEFAULT_BET);
             self.bet_player.write(token_id, caller);
 
+            let event_relayer = self.event_relayer.read();
+            if event_relayer.into() != 0 {
+                let relayer = IEventRelayerDispatcher { contract_address: event_relayer };
+                relayer.emit_bet_placed(caller, self.coin_toss.read(), token_id);
+            }
+
             token_id
         }
 
@@ -152,6 +173,12 @@ pub mod casino {
                 assert!(transferred, "Payout transfer failed");
             }
             // If score == 0, house keeps the bet (already added to house_balance)
+
+            let event_relayer = self.event_relayer.read();
+            if event_relayer.into() != 0 {
+                let relayer = IEventRelayerDispatcher { contract_address: event_relayer };
+                relayer.emit_bet_settled(self.bet_player.read(token_id), token_id, score > 0, score);
+            }
         }
 
         /// Owner deposits ETH to fund the house bankroll.
@@ -191,6 +218,10 @@ pub mod casino {
 
         fn coin_toss_address(self: @ContractState) -> ContractAddress {
             self.coin_toss.read()
+        }
+
+        fn event_relayer_address(self: @ContractState) -> ContractAddress {
+            self.event_relayer.read()
         }
     }
 }

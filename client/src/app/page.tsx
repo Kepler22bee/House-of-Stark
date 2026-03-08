@@ -6,7 +6,6 @@ export default function Home() {
   const router = useRouter();
   const [stars, setStars] = useState<{ x: number; y: number; size: number; opacity: number }[]>([]);
   const [hover, setHover] = useState(false);
-
   useEffect(() => {
     const s = Array.from({ length: 80 }, () => ({
       x: Math.random() * 100,

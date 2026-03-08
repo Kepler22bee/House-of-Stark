@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import StarknetProvider from "../dojo/StarknetProvider";
 
 export const metadata: Metadata = {
-  title: "Pixel Quest - Adventure RPG",
-  description: "A top-down pixel art RPG adventure",
+  title: "Fortune Falls - Casino RPG",
+  description: "A top-down pixel art casino RPG on Starknet",
 };
 
 export default function RootLayout({
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <StarknetProvider>{children}</StarknetProvider>
+      </body>
     </html>
   );
 }
