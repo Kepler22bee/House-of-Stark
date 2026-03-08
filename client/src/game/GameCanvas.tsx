@@ -23,6 +23,65 @@ interface GameScreenState {
   type: "coin_toss" | "price_prediction" | null;
 }
 
+export interface AgentMenuState {
+  active: boolean;
+  tab: "agents" | "shop";
+  selectedAgent: number;
+  scrollOffset: number;
+}
+
+export interface AgentData {
+  name: string;
+  bodyColor: string;
+  hairColor: string;
+  skinColor: string;
+  status: "idle" | "active";
+  abilities: string[];
+}
+
+export interface ShopPower {
+  name: string;
+  icon: string;
+  description: string;
+  cost: number;
+}
+
+export const SHOP_POWERS: ShopPower[] = [
+  { name: "Lucky Streak", icon: "🍀", description: "Boost coin toss odds by 5%", cost: 500 },
+  { name: "Market Eye", icon: "👁", description: "Reveal price trends early", cost: 1200 },
+  { name: "Double Down", icon: "⚡", description: "2x payout on next win", cost: 800 },
+  { name: "Shield Wall", icon: "🛡", description: "Prevent one loss per round", cost: 2000 },
+];
+
+export let playerMoney = 3500;
+
+export const MOCK_AGENTS: AgentData[] = [
+  {
+    name: "Convlios",
+    bodyColor: "#e89830",
+    hairColor: "#6b3a1f",
+    skinColor: "#ffcc99",
+    status: "active",
+    abilities: ["Lenebferenters", "Denter Lerge", "Dehamor Lecipettions", "Moureal Reade"],
+  },
+  {
+    name: "Draknor",
+    bodyColor: "#3a6fa8",
+    hairColor: "#1a1a2e",
+    skinColor: "#e8c49a",
+    status: "idle",
+    abilities: ["Market Watch", "Price Analysis"],
+  },
+  {
+    name: "Serphina",
+    bodyColor: "#8b2e6b",
+    hairColor: "#c0392b",
+    skinColor: "#fdd9b5",
+    status: "active",
+    abilities: ["Coin Flip Auto", "Yield Optimizer", "Risk Assessment"],
+  },
+];
+
 interface IntroState {
   active: boolean;
   line: number;
@@ -68,6 +127,7 @@ export default function GameCanvas() {
   const lastTimeRef = useRef<number>(0);
   const sceneRef = useRef<Scene>("overworld");
   const casinoIntroRef = useRef<IntroState>({ active: false, line: 0, dismissed: false });
+  const agentMenuRef = useRef<AgentMenuState>({ active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 });
   // Store overworld position to restore when exiting casino
   const overworldPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -205,6 +265,29 @@ export default function GameCanvas() {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       keysRef.current.add(e.key);
+      if (e.key === "b" || e.key === "B") {
+        if (agentMenuRef.current.active) {
+          agentMenuRef.current = { active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 };
+        } else {
+          agentMenuRef.current = { active: true, tab: "agents", selectedAgent: 0, scrollOffset: 0 };
+        }
+        return;
+      }
+      if (agentMenuRef.current.active) {
+        if (e.key === "Escape" || e.key === "x" || e.key === "X") {
+          agentMenuRef.current = { active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 };
+        } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
+          agentMenuRef.current.selectedAgent = Math.min(agentMenuRef.current.selectedAgent + 1, MOCK_AGENTS.length - 1);
+        } else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
+          agentMenuRef.current.selectedAgent = Math.max(agentMenuRef.current.selectedAgent - 1, 0);
+        } else if (e.key === "Tab") {
+          e.preventDefault();
+          const tabs: AgentMenuState["tab"][] = ["agents", "shop"];
+          const idx = tabs.indexOf(agentMenuRef.current.tab);
+          agentMenuRef.current.tab = tabs[(idx + 1) % tabs.length];
+        }
+        return;
+      }
       if (e.key === "e" || e.key === "E" || e.key === "Enter" || e.key === " ") {
         tryInteract();
       }
@@ -217,8 +300,69 @@ export default function GameCanvas() {
       keysRef.current.delete(e.key);
     };
 
+    const handleClick = (e: MouseEvent) => {
+      if (!agentMenuRef.current.active) return;
+
+      const mx = e.clientX;
+      const my = e.clientY;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+
+      // Must match renderer drawAgentMenu layout exactly
+      const panelW = Math.min(520, w - 40);
+      const panelH = Math.min(420, h - 40);
+      const panelX = (w - panelW) / 2;
+      const panelY = (h - panelH) / 2;
+
+      // Close button (X) — matches renderer: closeX = panelX + panelW - 36, closeY = tabY + 6, 26x26
+      const closeX = panelX + panelW - 36;
+      const closeY = panelY + 6;
+      if (mx >= closeX && mx <= closeX + 26 && my >= closeY && my <= closeY + 26) {
+        agentMenuRef.current = { active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 };
+        return;
+      }
+
+      // Tab bar — matches renderer: tabH=38, tabW=(panelW-60)/2, spacing = tabW+6
+      const tabH = 38;
+      const tabs: { key: AgentMenuState["tab"] }[] = [
+        { key: "agents" },
+        { key: "shop" },
+      ];
+      const tabW = (panelW - 60) / tabs.length;
+      if (my >= panelY - 6 && my <= panelY + tabH) {
+        for (let i = 0; i < tabs.length; i++) {
+          const tx = panelX + 10 + i * (tabW + 6);
+          if (mx >= tx && mx <= tx + tabW) {
+            agentMenuRef.current.tab = tabs[i].key;
+            return;
+          }
+        }
+      }
+
+      // Content area — matches renderer: contentY = tabY + tabH + 12
+      const contentY = panelY + tabH + 12;
+
+      if (agentMenuRef.current.tab === "agents") {
+        const agents = MOCK_AGENTS;
+        let cumulY = 0;
+        for (let i = 0; i < agents.length; i++) {
+          const agent = agents[i];
+          const rowH = Math.max(80, 44 + agent.abilities.length * 16 + 24);
+          const rowY = contentY + cumulY;
+          if (rowY + rowH > panelY + panelH - 20) break;
+
+          if (my >= rowY && my <= rowY + rowH) {
+            agentMenuRef.current.selectedAgent = i;
+            return;
+          }
+          cumulY += rowH + 6;
+        }
+      }
+    };
+
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("click", handleClick);
 
     let animId: number;
 
@@ -237,7 +381,7 @@ export default function GameCanvas() {
       const mapData: MapData = { map, width, height };
 
       // Don't move during any dialogue/intro
-      const blocked = introRef.current.active || casinoIntroRef.current.active || dialogueRef.current.active || tileDialogueRef.current.active || gameScreenRef.current.active;
+      const blocked = introRef.current.active || casinoIntroRef.current.active || dialogueRef.current.active || tileDialogueRef.current.active || gameScreenRef.current.active || agentMenuRef.current.active;
       if (!blocked) {
         updatePlayer(playerRef.current, keysRef.current, dt, mapData);
       }
@@ -266,6 +410,7 @@ export default function GameCanvas() {
             : null,
         sceneData,
         gameScreenRef.current.active ? gameScreenRef.current.type : null,
+        agentMenuRef.current.active ? agentMenuRef.current : null,
       );
 
       animId = requestAnimationFrame(gameLoop);
@@ -277,6 +422,7 @@ export default function GameCanvas() {
       cancelAnimationFrame(animId);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("click", handleClick);
     };
   }, [tryInteract, getActiveMap, getActiveNpcs]);
 

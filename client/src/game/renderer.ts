@@ -1,6 +1,7 @@
 import { TILE_SIZE, drawTile } from "./tiles";
 import { gameMap, MAP_WIDTH, MAP_HEIGHT, npcs, NPC } from "./map";
 import { Player, drawPlayer, MapData } from "./player";
+import { AgentMenuState, AgentData, MOCK_AGENTS, SHOP_POWERS, playerMoney } from "./GameCanvas";
 
 export interface SceneData {
   map: number[][];
@@ -37,6 +38,7 @@ export function renderGame(
   introOverlay: IntroOverlay | null = null,
   sceneData?: SceneData,
   gameScreen?: "coin_toss" | "price_prediction" | null,
+  agentMenu?: AgentMenuState | null,
 ) {
   const activeMap = sceneData?.map ?? gameMap;
   const activeW = sceneData?.mapWidth ?? MAP_WIDTH;
@@ -95,6 +97,11 @@ export function renderGame(
   if (gameScreen) {
     drawGameScreen(ctx, canvasW, canvasH, gameScreen);
   }
+
+  // Draw agent menu overlay
+  if (agentMenu) {
+    drawAgentMenu(ctx, canvasW, canvasH, agentMenu);
+  }
 }
 
 function drawGameScreen(
@@ -104,79 +111,97 @@ function drawGameScreen(
   gameType: "coin_toss" | "price_prediction",
 ) {
   // Dim background
-  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
   ctx.fillRect(0, 0, canvasW, canvasH);
 
-  // Center black panel
+  // Panel
   const panelW = Math.min(700, canvasW - 80);
   const panelH = Math.min(450, canvasH - 80);
   const panelX = (canvasW - panelW) / 2;
   const panelY = (canvasH - panelH) / 2;
+  const r = 12;
 
-  // Panel shadow
-  ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+  // Shadow
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
-  ctx.roundRect(panelX + 6, panelY + 6, panelW, panelH, 12);
+  ctx.roundRect(panelX + 4, panelY + 4, panelW, panelH, r);
   ctx.fill();
 
-  // Panel background
-  ctx.fillStyle = "#0a0a14";
+  // Background — warm cream
+  ctx.fillStyle = "#c8bfa0";
   ctx.beginPath();
-  ctx.roundRect(panelX, panelY, panelW, panelH, 12);
+  ctx.roundRect(panelX, panelY, panelW, panelH, r);
   ctx.fill();
 
-  // Gold border
-  ctx.strokeStyle = "#fdd835";
-  ctx.lineWidth = 2;
+  // Dark border
+  ctx.strokeStyle = "#5a5040";
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.roundRect(panelX, panelY, panelW, panelH, 12);
+  ctx.roundRect(panelX, panelY, panelW, panelH, r);
   ctx.stroke();
 
-  // Inner border
-  ctx.strokeStyle = "rgba(253, 216, 53, 0.2)";
+  // Inner highlight
+  ctx.strokeStyle = "#ddd4b8";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.roundRect(panelX + 8, panelY + 8, panelW - 16, panelH - 16, 8);
+  ctx.roundRect(panelX + 4, panelY + 4, panelW - 8, panelH - 8, r - 2);
   ctx.stroke();
 
   // Title
   const isCoinToss = gameType === "coin_toss";
   const title = isCoinToss ? "COIN TOSS" : "PRICE PREDICTION";
   const icon = isCoinToss ? "🪙" : "📈";
-  const accentColor = isCoinToss ? "#fdd835" : "#00d2ff";
 
   ctx.font = "bold 28px 'Courier New', monospace";
   ctx.textAlign = "center";
-  ctx.fillStyle = accentColor;
+  ctx.fillStyle = "#3a3020";
   ctx.fillText(title, canvasW / 2, panelY + 50);
+
+  // Decorative line under title
+  ctx.fillStyle = "#a89878";
+  ctx.fillRect(panelX + 60, panelY + 60, panelW - 120, 2);
 
   // Icon
   ctx.font = "48px Arial";
   ctx.fillText(icon, canvasW / 2, panelY + 120);
 
-  // Subtitle
-  ctx.font = "16px 'Courier New', monospace";
-  ctx.fillStyle = "#8a8a8a";
+  // Subtitle — inner cream panel
+  const subPanelX = panelX + 40;
+  const subPanelY = panelY + 140;
+  const subPanelW = panelW - 80;
+  const subPanelH = 50;
+  ctx.fillStyle = "#ede6d0";
+  ctx.beginPath();
+  ctx.roundRect(subPanelX, subPanelY, subPanelW, subPanelH, 6);
+  ctx.fill();
+  ctx.strokeStyle = "#a89878";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(subPanelX, subPanelY, subPanelW, subPanelH, 6);
+  ctx.stroke();
+
+  ctx.font = "15px 'Courier New', monospace";
+  ctx.fillStyle = "#5a5040";
   const subtitle = isCoinToss
     ? "Call heads or tails. Double or nothing."
     : "Read the chart. Bet on the next move.";
-  ctx.fillText(subtitle, canvasW / 2, panelY + 160);
+  ctx.fillText(subtitle, canvasW / 2, subPanelY + 30);
 
   // "Coming Soon" text
   ctx.font = "bold 20px 'Courier New', monospace";
-  ctx.fillStyle = "#555";
-  ctx.fillText("— COMING SOON —", canvasW / 2, panelY + panelH / 2 + 30);
+  ctx.fillStyle = "#8a7a50";
+  ctx.fillText("— COMING SOON —", canvasW / 2, panelY + panelH / 2 + 40);
 
   // Decorative line
-  ctx.fillStyle = "rgba(253, 216, 53, 0.15)";
-  ctx.fillRect(panelX + 40, panelY + panelH / 2 + 50, panelW - 80, 1);
+  ctx.fillStyle = "#a89878";
+  ctx.fillRect(panelX + 60, panelY + panelH / 2 + 56, panelW - 120, 2);
 
   // Dismiss hint
   ctx.font = "12px 'Courier New', monospace";
-  ctx.fillStyle = "rgba(253, 216, 53, 0.7)";
-  const blink = Math.sin(Date.now() / 300) > 0;
+  ctx.fillStyle = "#6a6050";
+  const blink = Math.sin(Date.now() / 400) > 0;
   if (blink) {
-    ctx.fillText("Press E to close", canvasW / 2, panelY + panelH - 24);
+    ctx.fillText("Press E to close", canvasW / 2, panelY + panelH - 20);
   }
 }
 
@@ -391,53 +416,66 @@ function drawIntroOverlay(
   const r = 12;
 
   // Box shadow
-  ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.beginPath();
   ctx.roundRect(boxX + 4, boxY + 4, boxW, boxH, r);
   ctx.fill();
 
-  // Box background
-  ctx.fillStyle = "rgba(8, 8, 28, 0.95)";
+  // Box background — warm cream
+  ctx.fillStyle = "#c8bfa0";
   ctx.beginPath();
   ctx.roundRect(boxX, boxY, boxW, boxH, r);
   ctx.fill();
 
-  // Gold border
-  ctx.strokeStyle = "#fdd835";
-  ctx.lineWidth = 2;
+  // Dark border
+  ctx.strokeStyle = "#5a5040";
+  ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.roundRect(boxX, boxY, boxW, boxH, r);
   ctx.stroke();
 
-  // Inner border
-  ctx.strokeStyle = "rgba(253, 216, 53, 0.2)";
+  // Inner highlight border
+  ctx.strokeStyle = "#ddd4b8";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.roundRect(boxX + 6, boxY + 6, boxW - 12, boxH - 12, r - 2);
+  ctx.roundRect(boxX + 4, boxY + 4, boxW - 8, boxH - 8, r - 2);
   ctx.stroke();
 
   // Title
   ctx.font = "bold 18px 'Courier New', monospace";
-  ctx.fillStyle = "#fdd835";
+  ctx.fillStyle = "#3a3020";
   ctx.textAlign = "center";
   ctx.fillText("FORTUNE FALLS", canvasW / 2, boxY + 36);
 
   // Subtitle line
-  ctx.fillStyle = "rgba(253, 216, 53, 0.3)";
-  ctx.fillRect(boxX + 40, boxY + 46, boxW - 80, 1);
+  ctx.fillStyle = "#a89878";
+  ctx.fillRect(boxX + 40, boxY + 46, boxW - 80, 2);
 
   // Dice icon
   ctx.font = "28px Arial";
   ctx.fillText("🎰", canvasW / 2, boxY + 78);
 
-  // Current line text
+  // Current line text — inner cream panel
+  const textPadX = 30;
+  const textPanelY = boxY + 88;
+  const textPanelH = boxH - 140;
+  ctx.fillStyle = "#ede6d0";
+  ctx.beginPath();
+  ctx.roundRect(boxX + textPadX, textPanelY, boxW - textPadX * 2, textPanelH, 6);
+  ctx.fill();
+  ctx.strokeStyle = "#a89878";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(boxX + textPadX, textPanelY, boxW - textPadX * 2, textPanelH, 6);
+  ctx.stroke();
+
   const text = intro.lines[intro.line];
   ctx.font = "14px 'Courier New', monospace";
-  ctx.fillStyle = "#e0e0e0";
+  ctx.fillStyle = "#3a3020";
   ctx.textAlign = "center";
 
   // Word wrap
-  const maxLineW = boxW - 60;
+  const maxLineW = boxW - 80;
   const words = text.split(" ");
   const wrappedLines: string[] = [];
   let currentLine = "";
@@ -452,30 +490,31 @@ function drawIntroOverlay(
   }
   if (currentLine) wrappedLines.push(currentLine);
 
-  const textY = boxY + 110;
+  const totalTextH = wrappedLines.length * 22;
+  const textStartY = textPanelY + (textPanelH - totalTextH) / 2 + 14;
   for (let i = 0; i < wrappedLines.length; i++) {
-    ctx.fillText(wrappedLines[i], canvasW / 2, textY + i * 22);
+    ctx.fillText(wrappedLines[i], canvasW / 2, textStartY + i * 22);
   }
 
   // Progress dots
-  const dotY = boxY + boxH - 50;
+  const dotY = boxY + boxH - 46;
   const totalDots = intro.lines.length;
   const dotSpacing = 12;
   const dotsStartX = canvasW / 2 - ((totalDots - 1) * dotSpacing) / 2;
   for (let i = 0; i < totalDots; i++) {
     ctx.beginPath();
     ctx.arc(dotsStartX + i * dotSpacing, dotY, i === intro.line ? 4 : 2, 0, Math.PI * 2);
-    ctx.fillStyle = i === intro.line ? "#fdd835" : i < intro.line ? "rgba(253,216,53,0.5)" : "rgba(255,255,255,0.2)";
+    ctx.fillStyle = i === intro.line ? "#5a4820" : i < intro.line ? "#8a7a50" : "#b0a888";
     ctx.fill();
   }
 
   // Continue hint
   ctx.font = "11px 'Courier New', monospace";
-  ctx.fillStyle = "rgba(253,216,53,0.7)";
+  ctx.fillStyle = "#6a6050";
   ctx.textAlign = "center";
-  const blink = Math.sin(Date.now() / 300) > 0;
+  const blink = Math.sin(Date.now() / 400) > 0;
   if (blink) {
-    ctx.fillText(`Press E to continue (${intro.line + 1}/${totalDots})`, canvasW / 2, boxY + boxH - 16);
+    ctx.fillText(`Press E to continue (${intro.line + 1}/${totalDots})`, canvasW / 2, boxY + boxH - 14);
   }
 }
 
@@ -486,49 +525,514 @@ function drawDialogueBox(
   name: string,
   text: string,
 ) {
-  const boxH = 100;
+  const boxH = 110;
   const boxW = canvasW - 40;
   const boxX = 20;
   const boxY = canvasH - boxH - 20;
+  const r = 10;
 
-  // Box background
-  ctx.fillStyle = "rgba(10, 10, 30, 0.92)";
-  ctx.strokeStyle = "#fdd835";
-  ctx.lineWidth = 2;
-
-  // Rounded rect
-  const r = 8;
+  // Box shadow
+  ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
   ctx.beginPath();
-  ctx.moveTo(boxX + r, boxY);
-  ctx.lineTo(boxX + boxW - r, boxY);
-  ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + r);
-  ctx.lineTo(boxX + boxW, boxY + boxH - r);
-  ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - r, boxY + boxH);
-  ctx.lineTo(boxX + r, boxY + boxH);
-  ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - r);
-  ctx.lineTo(boxX, boxY + r);
-  ctx.quadraticCurveTo(boxX, boxY, boxX + r, boxY);
-  ctx.closePath();
+  ctx.roundRect(boxX + 3, boxY + 3, boxW, boxH, r);
   ctx.fill();
+
+  // Box background — warm cream
+  ctx.fillStyle = "#c8bfa0";
+  ctx.beginPath();
+  ctx.roundRect(boxX, boxY, boxW, boxH, r);
+  ctx.fill();
+
+  // Dark border
+  ctx.strokeStyle = "#5a5040";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(boxX, boxY, boxW, boxH, r);
   ctx.stroke();
 
-  // Name tag
-  ctx.font = "bold 14px 'Courier New', monospace";
-  ctx.fillStyle = "#fdd835";
-  ctx.textAlign = "left";
-  ctx.fillText(name, boxX + 16, boxY + 24);
+  // Inner highlight
+  ctx.strokeStyle = "#ddd4b8";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(boxX + 4, boxY + 4, boxW - 8, boxH - 8, r - 2);
+  ctx.stroke();
 
-  // Dialogue text
+  // Name tag — in a small raised tab
+  const nameW = ctx.measureText(name).width + 24;
+  ctx.font = "bold 14px 'Courier New', monospace";
+  const nameTagW = Math.max(nameW, 100);
+  ctx.fillStyle = "#b8a880";
+  ctx.beginPath();
+  ctx.roundRect(boxX + 12, boxY + 8, nameTagW, 24, 4);
+  ctx.fill();
+  ctx.strokeStyle = "#9a9080";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(boxX + 12, boxY + 8, nameTagW, 24, 4);
+  ctx.stroke();
+  ctx.fillStyle = "#3a3020";
+  ctx.textAlign = "left";
+  ctx.fillText(name, boxX + 22, boxY + 25);
+
+  // Dialogue text — inner cream panel
+  const textBoxX = boxX + 12;
+  const textBoxY = boxY + 38;
+  const textBoxW = boxW - 24;
+  const textBoxH = boxH - 54;
+  ctx.fillStyle = "#ede6d0";
+  ctx.beginPath();
+  ctx.roundRect(textBoxX, textBoxY, textBoxW, textBoxH, 6);
+  ctx.fill();
+  ctx.strokeStyle = "#a89878";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(textBoxX, textBoxY, textBoxW, textBoxH, 6);
+  ctx.stroke();
+
   ctx.font = "13px 'Courier New', monospace";
-  ctx.fillStyle = "#e0e0e0";
-  ctx.fillText(text, boxX + 16, boxY + 50);
+  ctx.fillStyle = "#3a3020";
+  ctx.textAlign = "left";
+  ctx.fillText(text, textBoxX + 12, textBoxY + 22);
 
   // Continue hint
   ctx.font = "10px 'Courier New', monospace";
-  ctx.fillStyle = "rgba(253,216,53,0.7)";
+  ctx.fillStyle = "#6a6050";
   ctx.textAlign = "right";
-  const blink = Math.sin(Date.now() / 300) > 0;
+  const blink = Math.sin(Date.now() / 400) > 0;
   if (blink) {
-    ctx.fillText("Press E to continue ▶", boxX + boxW - 16, boxY + boxH - 12);
+    ctx.fillText("Press E to continue ▶", boxX + boxW - 16, boxY + boxH - 10);
+  }
+}
+
+// ── Agent Menu (light theme matching reference) ─────────────────────
+
+function drawPixelAvatar(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  agent: AgentData,
+) {
+  const s = size / 32;
+  ctx.save();
+
+  // Avatar background — warm cream with subtle border
+  ctx.fillStyle = "#d4c8a8";
+  ctx.beginPath();
+  ctx.roundRect(x, y, size, size, 6 * s);
+  ctx.fill();
+  ctx.strokeStyle = "#a89878";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x, y, size, size, 6 * s);
+  ctx.stroke();
+
+  const cx = x + size / 2;
+  const baseY = y + 2 * s;
+
+  // Hair
+  ctx.fillStyle = agent.hairColor;
+  ctx.fillRect(cx - 9 * s, baseY + 1 * s, 18 * s, 7 * s);
+  // Hair top detail
+  ctx.fillRect(cx - 7 * s, baseY - 1 * s, 14 * s, 4 * s);
+
+  // Face / head
+  ctx.fillStyle = agent.skinColor;
+  ctx.fillRect(cx - 7 * s, baseY + 5 * s, 14 * s, 11 * s);
+
+  // Ears
+  ctx.fillRect(cx - 9 * s, baseY + 8 * s, 3 * s, 5 * s);
+  ctx.fillRect(cx + 6 * s, baseY + 8 * s, 3 * s, 5 * s);
+
+  // Eyes — white sclera + dark pupil
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(cx - 5 * s, baseY + 9 * s, 4 * s, 3 * s);
+  ctx.fillRect(cx + 1 * s, baseY + 9 * s, 4 * s, 3 * s);
+  ctx.fillStyle = "#2d1b4e";
+  ctx.fillRect(cx - 3 * s, baseY + 9.5 * s, 2 * s, 2.5 * s);
+  ctx.fillRect(cx + 2 * s, baseY + 9.5 * s, 2 * s, 2.5 * s);
+
+  // Mouth
+  ctx.fillStyle = "#c47a5a";
+  ctx.fillRect(cx - 2 * s, baseY + 13 * s, 4 * s, 1.5 * s);
+
+  // Body / shirt
+  ctx.fillStyle = agent.bodyColor;
+  ctx.fillRect(cx - 10 * s, baseY + 16 * s, 20 * s, 12 * s);
+
+  // Collar detail
+  const lighter = lightenColor(agent.bodyColor, 30);
+  ctx.fillStyle = lighter;
+  ctx.fillRect(cx - 3 * s, baseY + 16 * s, 6 * s, 3 * s);
+
+  ctx.restore();
+}
+
+function lightenColor(hex: string, amt: number): string {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const r = Math.min(255, (num >> 16) + amt);
+  const g = Math.min(255, ((num >> 8) & 0xff) + amt);
+  const b = Math.min(255, (num & 0xff) + amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+function drawAgentMenu(
+  ctx: CanvasRenderingContext2D,
+  canvasW: number,
+  canvasH: number,
+  menu: AgentMenuState,
+) {
+  ctx.save();
+
+  // Dim background
+  ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+  ctx.fillRect(0, 0, canvasW, canvasH);
+
+  // Panel dimensions
+  const panelW = Math.min(520, canvasW - 40);
+  const panelH = Math.min(420, canvasH - 40);
+  const panelX = (canvasW - panelW) / 2;
+  const panelY = (canvasH - panelH) / 2;
+  const r = 12;
+
+  // Panel shadow
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  ctx.roundRect(panelX + 4, panelY + 4, panelW, panelH, r);
+  ctx.fill();
+
+  // Panel background — light cream like reference
+  ctx.fillStyle = "#c8bfa0";
+  ctx.beginPath();
+  ctx.roundRect(panelX, panelY, panelW, panelH, r);
+  ctx.fill();
+
+  // Panel border — dark outline
+  ctx.strokeStyle = "#5a5040";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.roundRect(panelX, panelY, panelW, panelH, r);
+  ctx.stroke();
+
+  // Inner border highlight
+  ctx.strokeStyle = "#ddd4b8";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(panelX + 4, panelY + 4, panelW - 8, panelH - 8, r - 2);
+  ctx.stroke();
+
+  // ── Tab bar ──
+  const tabY = panelY;
+  const tabH = 38;
+  const tabs: { label: string; key: AgentMenuState["tab"] }[] = [
+    { label: "Agents", key: "agents" },
+    { label: "Shop", key: "shop" },
+  ];
+  const tabW = (panelW - 60) / tabs.length;
+
+  for (let i = 0; i < tabs.length; i++) {
+    const tx = panelX + 10 + i * (tabW + 6);
+    const isActive = tabs[i].key === menu.tab;
+
+    if (isActive) {
+      // Active tab — raised look, connected to panel
+      ctx.fillStyle = "#c8bfa0";
+      ctx.beginPath();
+      ctx.roundRect(tx, tabY - 6, tabW, tabH + 6, [8, 8, 0, 0]);
+      ctx.fill();
+      ctx.strokeStyle = "#5a5040";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(tx, tabY + tabH);
+      ctx.lineTo(tx, tabY - 4);
+      ctx.quadraticCurveTo(tx, tabY - 6, tx + 8, tabY - 6);
+      ctx.lineTo(tx + tabW - 8, tabY - 6);
+      ctx.quadraticCurveTo(tx + tabW, tabY - 6, tx + tabW, tabY - 4);
+      ctx.lineTo(tx + tabW, tabY + tabH);
+      ctx.stroke();
+      // Hide bottom border under active tab
+      ctx.fillStyle = "#c8bfa0";
+      ctx.fillRect(tx + 2, tabY - 1, tabW - 4, 6);
+    } else {
+      // Inactive tab
+      ctx.fillStyle = "#a89878";
+      ctx.beginPath();
+      ctx.roundRect(tx, tabY + 2, tabW, tabH - 4, [6, 6, 0, 0]);
+      ctx.fill();
+      ctx.strokeStyle = "#7a6e58";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(tx, tabY + 2, tabW, tabH - 4, [6, 6, 0, 0]);
+      ctx.stroke();
+    }
+
+    ctx.font = "bold 14px 'Courier New', monospace";
+    ctx.fillStyle = isActive ? "#3a3020" : "#5a5040";
+    ctx.textAlign = "center";
+    ctx.fillText(tabs[i].label, tx + tabW / 2, tabY + 22);
+  }
+
+  // ── Close button (X) ──
+  const closeX = panelX + panelW - 36;
+  const closeY = tabY + 6;
+  ctx.fillStyle = "#4a7af5";
+  ctx.beginPath();
+  ctx.roundRect(closeX, closeY, 26, 26, 5);
+  ctx.fill();
+  ctx.strokeStyle = "#3560c0";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(closeX, closeY, 26, 26, 5);
+  ctx.stroke();
+  ctx.font = "bold 16px 'Courier New', monospace";
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  ctx.fillText("X", closeX + 13, closeY + 19);
+
+  // ── Content area ──
+  const contentY = tabY + tabH + 12;
+  const contentX = panelX + 16;
+  const contentW = panelW - 32;
+
+  if (menu.tab === "shop") {
+    drawShopContent(ctx, contentX, contentY, contentW, panelY + panelH - 20);
+  } else {
+    drawAgentsContent(ctx, contentX, contentY, contentW, panelY + panelH - 20, menu);
+  }
+
+  // ── Hint bar at bottom ──
+  ctx.font = "10px 'Courier New', monospace";
+  ctx.fillStyle = "#6a6050";
+  ctx.textAlign = "center";
+  const blinkAgent = Math.sin(Date.now() / 400) > 0;
+  if (blinkAgent) {
+    ctx.fillText("B: Close    W/S: Navigate    Tab: Switch tabs", canvasW / 2, panelY + panelH - 8);
+  }
+
+  ctx.restore();
+}
+
+function drawAgentsContent(
+  ctx: CanvasRenderingContext2D,
+  contentX: number,
+  contentY: number,
+  contentW: number,
+  maxY: number,
+  menu: AgentMenuState,
+) {
+  const agents = MOCK_AGENTS;
+  const avatarSize = 64;
+
+  const getRowH = (agent: AgentData) => Math.max(80, 44 + agent.abilities.length * 16 + 24);
+  let cumulY = 0;
+
+  for (let i = 0; i < agents.length; i++) {
+    const agent = agents[i];
+    const rowH = getRowH(agent);
+    const rowY = contentY + cumulY;
+    if (rowY + rowH > maxY) break;
+    cumulY += rowH + 6;
+    const isSelected = i === menu.selectedAgent;
+
+    // Row highlight
+    if (isSelected) {
+      ctx.fillStyle = "rgba(90, 80, 50, 0.12)";
+      ctx.beginPath();
+      ctx.roundRect(contentX - 6, rowY - 4, contentW + 12, rowH + 2, 8);
+      ctx.fill();
+      ctx.strokeStyle = "#8a7a50";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(contentX - 6, rowY - 4, contentW + 12, rowH + 2, 8);
+      ctx.stroke();
+    }
+
+    // Avatar
+    drawPixelAvatar(ctx, contentX, rowY, avatarSize, agent);
+
+    // Name in input-style box
+    const nameBoxX = contentX + avatarSize + 12;
+    const nameBoxY = rowY + 2;
+    const nameBoxW = contentW - avatarSize - 96;
+    const nameBoxH = 28;
+
+    ctx.fillStyle = "#e8e0c8";
+    ctx.beginPath();
+    ctx.roundRect(nameBoxX, nameBoxY, nameBoxW, nameBoxH, 4);
+    ctx.fill();
+    ctx.strokeStyle = "#9a9080";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(nameBoxX, nameBoxY, nameBoxW, nameBoxH, 4);
+    ctx.stroke();
+
+    ctx.font = "bold 14px 'Courier New', monospace";
+    ctx.fillStyle = "#3a3020";
+    ctx.textAlign = "left";
+    ctx.fillText(agent.name, nameBoxX + 8, nameBoxY + 19);
+
+    // Hire button — prominent blue
+    const btnW = 68;
+    const btnH = 28;
+    const btnX = contentX + contentW - btnW;
+    const btnY = rowY + 2;
+    // Button shadow
+    ctx.fillStyle = "#3560c0";
+    ctx.beginPath();
+    ctx.roundRect(btnX + 2, btnY + 2, btnW, btnH, 6);
+    ctx.fill();
+    // Button face
+    ctx.fillStyle = "#4a7af5";
+    ctx.beginPath();
+    ctx.roundRect(btnX, btnY, btnW, btnH, 6);
+    ctx.fill();
+    ctx.strokeStyle = "#3560c0";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(btnX, btnY, btnW, btnH, 6);
+    ctx.stroke();
+    // Button highlight
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.beginPath();
+    ctx.roundRect(btnX + 2, btnY + 2, btnW - 4, btnH / 2 - 2, [4, 4, 0, 0]);
+    ctx.fill();
+
+    ctx.font = "bold 13px 'Courier New', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.fillText("Hire", btnX + btnW / 2, btnY + 19);
+
+    // Abilities box — white/cream with clean border
+    if (agent.abilities.length > 0) {
+      const listX = contentX + avatarSize + 12;
+      const listY = rowY + 36;
+      const listW = contentW - avatarSize - 16;
+      const listH = 20 + agent.abilities.length * 16;
+
+      ctx.fillStyle = "#ede6d0";
+      ctx.beginPath();
+      ctx.roundRect(listX, listY, listW, listH, 6);
+      ctx.fill();
+      ctx.strokeStyle = "#a89878";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(listX, listY, listW, listH, 6);
+      ctx.stroke();
+
+      // "Abilities" header
+      ctx.font = "bold 12px 'Courier New', monospace";
+      ctx.fillStyle = "#4a4030";
+      ctx.textAlign = "left";
+      ctx.fillText("Abilities", listX + 10, listY + 14);
+
+      // Ability items
+      ctx.font = "11px 'Courier New', monospace";
+      for (let t = 0; t < agent.abilities.length; t++) {
+        const taskY = listY + 28 + t * 16;
+        // Dark square bullet
+        ctx.fillStyle = "#6a6050";
+        ctx.fillRect(listX + 12, taskY - 5, 6, 6);
+        // Text
+        ctx.fillStyle = "#5a5040";
+        ctx.fillText(agent.abilities[t], listX + 24, taskY);
+      }
+    }
+  }
+}
+
+function drawShopContent(
+  ctx: CanvasRenderingContext2D,
+  contentX: number,
+  contentY: number,
+  contentW: number,
+  maxY: number,
+) {
+  // Money display — gold bar
+  const moneyY = contentY + 4;
+  ctx.fillStyle = "#e8d8a0";
+  ctx.beginPath();
+  ctx.roundRect(contentX, moneyY, contentW, 32, 6);
+  ctx.fill();
+  ctx.strokeStyle = "#a89060";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(contentX, moneyY, contentW, 32, 6);
+  ctx.stroke();
+
+  ctx.font = "bold 14px 'Courier New', monospace";
+  ctx.fillStyle = "#5a4820";
+  ctx.textAlign = "left";
+  ctx.fillText("Money:", contentX + 12, moneyY + 21);
+  ctx.fillStyle = "#8a6a10";
+  ctx.textAlign = "right";
+  ctx.fillText(`${playerMoney} coins`, contentX + contentW - 12, moneyY + 21);
+
+  // Powers list
+  const startY = moneyY + 46;
+  const rowH = 72;
+
+  for (let i = 0; i < SHOP_POWERS.length; i++) {
+    const power = SHOP_POWERS[i];
+    const rowY = startY + i * rowH;
+    if (rowY + rowH > maxY) break;
+
+    // Row bg — lighter cream
+    ctx.fillStyle = "#ede6d0";
+    ctx.beginPath();
+    ctx.roundRect(contentX, rowY, contentW, rowH - 8, 6);
+    ctx.fill();
+    ctx.strokeStyle = "#a89878";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(contentX, rowY, contentW, rowH - 8, 6);
+    ctx.stroke();
+
+    // Icon
+    ctx.font = "24px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(power.icon, contentX + 28, rowY + 36);
+
+    // Name
+    ctx.font = "bold 13px 'Courier New', monospace";
+    ctx.fillStyle = "#3a3020";
+    ctx.textAlign = "left";
+    ctx.fillText(power.name, contentX + 52, rowY + 22);
+
+    // Description
+    ctx.font = "10px 'Courier New', monospace";
+    ctx.fillStyle = "#7a7060";
+    ctx.fillText(power.description, contentX + 52, rowY + 40);
+
+    // Cost
+    const canAfford = playerMoney >= power.cost;
+    ctx.font = "bold 11px 'Courier New', monospace";
+    ctx.fillStyle = canAfford ? "#8a6a10" : "#aa4444";
+    ctx.textAlign = "right";
+    ctx.fillText(`${power.cost} coins`, contentX + contentW - 78, rowY + 36);
+
+    // Buy button
+    const buyW = 56;
+    const buyH = 24;
+    const buyX = contentX + contentW - buyW - 10;
+    const buyY = rowY + 14;
+    // Shadow
+    ctx.fillStyle = canAfford ? "#1a6040" : "#2a2a30";
+    ctx.beginPath();
+    ctx.roundRect(buyX + 2, buyY + 2, buyW, buyH, 5);
+    ctx.fill();
+    // Face
+    ctx.fillStyle = canAfford ? "#2e8b57" : "#888";
+    ctx.beginPath();
+    ctx.roundRect(buyX, buyY, buyW, buyH, 5);
+    ctx.fill();
+    ctx.strokeStyle = canAfford ? "#1a6040" : "#666";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(buyX, buyY, buyW, buyH, 5);
+    ctx.stroke();
+    ctx.font = "bold 12px 'Courier New', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.fillText("Buy", buyX + buyW / 2, buyY + 17);
   }
 }
