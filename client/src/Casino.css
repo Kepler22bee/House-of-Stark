@@ -1,0 +1,174 @@
+/* ===== Pokémon Game Corner – Full-screen Canvas ===== */
+.casino-world {
+  position: fixed;
+  inset: 0;
+  background: #181018;
+  overflow: hidden;
+}
+.casino-world canvas {
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Interaction prompt (pixel Pokémon text box) */
+.casino-prompt {
+  position: fixed;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: #181010ee;
+  color: #ffd848;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 6px 14px;
+  border: 2px solid #ffd84840;
+  border-radius: 2px;
+  image-rendering: pixelated;
+  letter-spacing: 0.5px;
+  animation: promptPulse 1s steps(2) infinite;
+}
+@keyframes promptPulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+/* NPC speech bubble (Pokémon dialog box style) */
+.casino-speech {
+  position: fixed;
+  bottom: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: #f8f8f0;
+  color: #181810;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 10px 16px;
+  border: 3px solid #181810;
+  border-radius: 2px;
+  max-width: 340px;
+  text-align: left;
+  line-height: 1.5;
+  box-shadow: 4px 4px 0 #18101040;
+}
+/* Dialog triangle */
+.casino-speech::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #181810;
+}
+
+/* ===== SLOT POPUP ===== */
+.slot-overlay {
+  position: fixed;
+  inset: 0;
+  background: #181018cc;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.slot-box {
+  background: #181018;
+  border: 3px solid #ffd848;
+  border-radius: 2px;
+  padding: 16px 24px;
+  min-width: 300px;
+  text-align: center;
+  font-family: monospace;
+  box-shadow: 6px 6px 0 #ffd84820;
+  image-rendering: pixelated;
+}
+.slot-title {
+  font-size: 16px;
+  color: #ffd848;
+  letter-spacing: 4px;
+  margin-bottom: 12px;
+}
+.slot-coins {
+  font-size: 11px;
+  color: #b0b0a8;
+  margin-bottom: 8px;
+}
+.slot-coins strong { color: #ffd848; }
+.slot-reels {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.slot-reel {
+  width: 56px;
+  height: 64px;
+  background: #0a0a12;
+  border: 2px solid #ffd84850;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.slot-sym {
+  font-size: 30px;
+  color: #ffd848;
+  font-weight: 900;
+  font-family: monospace;
+}
+.slot-sym.spin { animation: slotSpin .06s steps(1) infinite; }
+@keyframes slotSpin {
+  0% { transform: translateY(-3px); }
+  33% { transform: translateY(0); }
+  66% { transform: translateY(3px); }
+}
+.slot-result {
+  font-size: 12px;
+  color: #b0b0a8;
+  min-height: 18px;
+  margin-bottom: 4px;
+}
+.slot-result.win { color: #ffd848; animation: winFlash .2s steps(1) 5; }
+@keyframes winFlash { 50% { color: #f8f8f0; } }
+.slot-bet { font-size: 10px; color: #787870; margin-bottom: 8px; }
+.slot-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.slot-btn {
+  font-family: monospace;
+  font-size: 10px;
+  padding: 5px 10px;
+  border: 2px solid #ffd84830;
+  border-radius: 2px;
+  cursor: pointer;
+  image-rendering: pixelated;
+}
+.slot-btn:active { transform: scale(.95); }
+.slot-btn-spin {
+  background: #ffd848;
+  color: #181018;
+  font-weight: 700;
+  border-color: #ffd848;
+}
+.slot-btn-spin:disabled { opacity: .35; cursor: not-allowed; }
+.slot-btn-exit { background: #383830; color: #b0b0a8; }
+.slot-btn-bet { background: #181018; color: #b0b0a8; }
+.slot-pay {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1px 8px;
+  font-size: 9px;
+  color: #787870;
+  margin-top: 4px;
+}
+.slot-help { font-size: 8px; color: #383830; margin-top: 6px; }

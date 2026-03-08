@@ -15,6 +15,7 @@ import { ControllerConnector } from "@cartridge/connector";
 import { addAddressPadding, CairoCustomEnum } from "starknet";
 import { ModelsMapping } from "./dojo/models";
 import { hasContent, isDug } from "./tiles";
+import Casino from "./Casino";
 import "./App.css";
 
 type Direction = "Left" | "Right" | "Up" | "Down";
@@ -157,6 +158,7 @@ function App() {
   const [username, setUsername] = useState<string>();
   const [autoSpawn, setAutoSpawn] = useState(false);
   const [digHistory, setDigHistory] = useState<Array<"gold" | "bomb">>([]);
+  const [showCasino, setShowCasino] = useState(false);
   useEffect(() => {
     if (!address || import.meta.env.VITE_E2E_TEST === "true") return;
     const controller = connectors[0] as ControllerConnector;
@@ -254,6 +256,10 @@ function App() {
     setPreDig(null);
   }, [level]);
 
+  if (showCasino) {
+    return <Casino onClose={() => setShowCasino(false)} />;
+  }
+
   if (!address) {
     return (
       <div className="login-screen">
@@ -270,6 +276,13 @@ function App() {
             }}
           >
             Start Digging
+          </button>
+          <button
+            className="btn-login"
+            style={{ marginTop: "1rem", background: "#2a2a38" }}
+            onClick={() => setShowCasino(true)}
+          >
+            Enter Casino
           </button>
           <div className="login-ornament">&#9674; &#9674; &#9674;</div>
         </div>
@@ -317,6 +330,9 @@ function App() {
           <span className="header-username">
             {username ?? `${address.slice(0, 6)}...${address.slice(-4)}`}
           </span>
+          <button className="btn-logout" onClick={() => setShowCasino(true)} style={{ marginRight: 4 }}>
+            Casino
+          </button>
           <button className="btn-logout" onClick={() => disconnect()}>
             Log out
           </button>
@@ -348,6 +364,7 @@ function App() {
           canDig={canDig}
         />
         {pending && <span className="pending">...</span>}
+        {showCasino && <Casino onClose={() => setShowCasino(false)} />}
         {isGameOver && (
           <div className="game-over">
             <div className="game-over-card">
