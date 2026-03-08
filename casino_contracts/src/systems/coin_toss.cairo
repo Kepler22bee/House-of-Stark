@@ -18,7 +18,8 @@ pub mod coin_toss {
     use dojo::model::ModelStorage;
 
     use game_components_minigame::minigame::MinigameComponent;
-    use game_components_minigame::interface::IMinigameTokenData;
+    use game_components_minigame::interface::{IMinigameTokenData, IMinigameDetails};
+    use game_components_minigame::structs::GameDetail;
     use openzeppelin_introspection::src5::SRC5Component;
 
     use cairo_casino::models::CoinTossGame;
@@ -68,6 +69,59 @@ pub mod coin_toss {
         }
     }
 
+    // IMinigameDetails — NFT metadata for the game token
+    #[abi(embed_v0)]
+    impl DetailsImpl of IMinigameDetails<ContractState> {
+        fn token_name(self: @ContractState, token_id: u64) -> ByteArray {
+            "Coin Toss"
+        }
+
+        fn token_description(self: @ContractState, token_id: u64) -> ByteArray {
+            let world = self.world_default();
+            let game: CoinTossGame = world.read_model(token_id);
+            if !game.over {
+                return "Coin Toss - Awaiting flip";
+            }
+            if game.won {
+                "Coin Toss - Winner! 2x payout"
+            } else {
+                "Coin Toss - Better luck next time"
+            }
+        }
+
+        fn game_details(self: @ContractState, token_id: u64) -> Span<GameDetail> {
+            let world = self.world_default();
+            let game: CoinTossGame = world.read_model(token_id);
+
+            let choice_str: ByteArray = if game.choice == 0 {
+                "Heads"
+            } else {
+                "Tails"
+            };
+            let result_str: ByteArray = if !game.over {
+                "Pending"
+            } else if game.result == 0 {
+                "Heads"
+            } else {
+                "Tails"
+            };
+            let outcome_str: ByteArray = if !game.over {
+                "In Progress"
+            } else if game.won {
+                "Won"
+            } else {
+                "Lost"
+            };
+
+            array![
+                GameDetail { name: "Choice", value: choice_str },
+                GameDetail { name: "Result", value: result_str },
+                GameDetail { name: "Outcome", value: outcome_str },
+            ]
+                .span()
+        }
+    }
+
     #[abi(embed_v0)]
     impl CoinTossImpl of ICoinToss<ContractState> {
         fn initialize(
@@ -99,6 +153,9 @@ pub mod coin_toss {
 
         fn flip(ref self: ContractState, token_id: u64, choice: u8) {
             assert!(choice == 0 || choice == 1, "Choice must be 0 (heads) or 1 (tails)");
+
+            // EGS: verify caller owns this token
+            self.minigame.assert_token_ownership(token_id);
 
             // EGS pre-action: validates token is playable
             self.minigame.pre_action(token_id);
