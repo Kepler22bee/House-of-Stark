@@ -6,6 +6,7 @@ pub trait ICoinToss<T> {
         ref self: T,
         creator_address: ContractAddress,
         token_address: ContractAddress,
+        vrf_provider_address: ContractAddress,
     );
     fn flip(ref self: T, token_id: u64, choice: u8);
 }
@@ -13,7 +14,7 @@ pub trait ICoinToss<T> {
 #[dojo::contract]
 pub mod coin_toss {
     use super::ICoinToss;
-    use starknet::{ContractAddress, get_caller_address, get_block_timestamp};
+    use starknet::{ContractAddress, get_contract_address};
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use dojo::model::ModelStorage;
 
@@ -23,6 +24,7 @@ pub mod coin_toss {
     use openzeppelin_introspection::src5::SRC5Component;
 
     use cairo_casino::models::CoinTossGame;
+    use cairo_casino::vrf::{IVrfProviderDispatcher, IVrfProviderDispatcherTrait, Source};
 
     // Components
     component!(path: MinigameComponent, storage: minigame, event: MinigameEvent);
@@ -42,6 +44,7 @@ pub mod coin_toss {
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         initialized: bool,
+        vrf_provider: ContractAddress,
     }
 
     #[event]
@@ -128,9 +131,11 @@ pub mod coin_toss {
             ref self: ContractState,
             creator_address: ContractAddress,
             token_address: ContractAddress,
+            vrf_provider_address: ContractAddress,
         ) {
             assert!(!self.initialized.read(), "Already initialized");
             self.initialized.write(true);
+            self.vrf_provider.write(vrf_provider_address);
 
             self
                 .minigame
@@ -160,14 +165,13 @@ pub mod coin_toss {
             // EGS pre-action: validates token is playable
             self.minigame.pre_action(token_id);
 
-            // Determine result using Poseidon hash
-            let caller = get_caller_address();
-            let timestamp = get_block_timestamp();
-            let hash = core::poseidon::poseidon_hash_span(
-                [token_id.into(), caller.into(), timestamp.into()].span(),
-            );
-            let hash_u256: u256 = hash.into();
-            let result: u8 = (hash_u256 % 2).try_into().unwrap();
+            // Cartridge VRF: consume verifiable randomness
+            let vrf = IVrfProviderDispatcher {
+                contract_address: self.vrf_provider.read(),
+            };
+            let random = vrf.consume_random(Source::Nonce(get_contract_address()));
+            let random_u256: u256 = random.into();
+            let result: u8 = (random_u256 % 2).try_into().unwrap();
 
             let won = choice == result;
             let score = if won { 2_u32 } else { 0_u32 };
