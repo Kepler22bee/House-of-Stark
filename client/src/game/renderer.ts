@@ -722,7 +722,7 @@ function drawDialogueBox(
   name: string,
   text: string,
 ) {
-  const boxH = 110;
+  const boxH = 140;
   const boxW = canvasW - 40;
   const boxX = 20;
   const boxY = canvasH - boxH - 20;
@@ -755,27 +755,27 @@ function drawDialogueBox(
   ctx.stroke();
 
   // Name tag — in a small raised tab
-  const nameW = ctx.measureText(name).width + 24;
-  ctx.font = "bold 14px 'Courier New', monospace";
-  const nameTagW = Math.max(nameW, 100);
+  ctx.font = "bold 18px 'Courier New', monospace";
+  const nameW = ctx.measureText(name).width + 28;
+  const nameTagW = Math.max(nameW, 120);
   ctx.fillStyle = "#b8a880";
   ctx.beginPath();
-  ctx.roundRect(boxX + 12, boxY + 8, nameTagW, 24, 4);
+  ctx.roundRect(boxX + 12, boxY + 8, nameTagW, 28, 4);
   ctx.fill();
   ctx.strokeStyle = "#9a9080";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.roundRect(boxX + 12, boxY + 8, nameTagW, 24, 4);
+  ctx.roundRect(boxX + 12, boxY + 8, nameTagW, 28, 4);
   ctx.stroke();
   ctx.fillStyle = "#3a3020";
   ctx.textAlign = "left";
-  ctx.fillText(name, boxX + 22, boxY + 25);
+  ctx.fillText(name, boxX + 22, boxY + 28);
 
   // Dialogue text — inner cream panel
   const textBoxX = boxX + 12;
-  const textBoxY = boxY + 38;
+  const textBoxY = boxY + 42;
   const textBoxW = boxW - 24;
-  const textBoxH = boxH - 54;
+  const textBoxH = boxH - 58;
   ctx.fillStyle = "#ede6d0";
   ctx.beginPath();
   ctx.roundRect(textBoxX, textBoxY, textBoxW, textBoxH, 6);
@@ -786,13 +786,33 @@ function drawDialogueBox(
   ctx.roundRect(textBoxX, textBoxY, textBoxW, textBoxH, 6);
   ctx.stroke();
 
-  ctx.font = "13px 'Courier New', monospace";
+  // Word-wrap dialogue text
+  ctx.font = "bold 18px 'Courier New', monospace";
   ctx.fillStyle = "#3a3020";
   ctx.textAlign = "left";
-  ctx.fillText(text, textBoxX + 12, textBoxY + 22);
+  const maxTextW = textBoxW - 24;
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let curLine = "";
+  for (const word of words) {
+    const test = curLine ? curLine + " " + word : word;
+    if (ctx.measureText(test).width > maxTextW) {
+      lines.push(curLine);
+      curLine = word;
+    } else {
+      curLine = test;
+    }
+  }
+  if (curLine) lines.push(curLine);
+
+  const lineH = 24;
+  const textStartY = textBoxY + 24;
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], textBoxX + 12, textStartY + i * lineH);
+  }
 
   // Continue hint
-  ctx.font = "10px 'Courier New', monospace";
+  ctx.font = "bold 12px 'Courier New', monospace";
   ctx.fillStyle = "#6a6050";
   ctx.textAlign = "right";
   const blink = Math.sin(Date.now() / 400) > 0;
