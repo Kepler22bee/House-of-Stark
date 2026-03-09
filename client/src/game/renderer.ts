@@ -4,6 +4,7 @@ import { Player, drawPlayer, MapData } from "./player";
 import { AgentMenuState, AgentData, MOCK_AGENTS, SHOP_POWERS, playerMoney } from "./GameCanvas";
 import { drawTiledMap, tiledMapReady, getTiledMinimapColor, TILED_MAP_WIDTH, TILED_MAP_HEIGHT, CASINO_BUILDING } from "./tiledMap";
 import { drawTiledCasino, casinoTiledReady, CASINO_MAP_W, CASINO_MAP_H } from "./tiledCasino";
+import { Companion, drawCompanion } from "./companion";
 
 export interface SceneData {
   map: number[][];
@@ -51,6 +52,7 @@ export function renderGame(
   sceneData?: SceneData,
   gameScreen?: "coin_toss" | "price_prediction" | null,
   agentMenu?: AgentMenuState | null,
+  companion?: Companion | null,
 ) {
   const activeMap = sceneData?.map ?? gameMap;
   const activeNpcs = sceneData?.npcs ?? npcs;
@@ -98,6 +100,11 @@ export function renderGame(
   // Draw NPCs
   for (const npc of activeNpcs) {
     drawNPC(ctx, npc, player);
+  }
+
+  // Draw companion
+  if (companion) {
+    drawCompanion(ctx, companion);
   }
 
   // Draw player

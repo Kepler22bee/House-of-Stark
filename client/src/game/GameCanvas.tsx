@@ -8,6 +8,7 @@ import { TILE_INFO, TileType, TILE_SIZE } from "./tiles";
 import { loadAllSprites } from "./sprites";
 import { loadTiledMap, CASINO_BUILDING } from "./tiledMap";
 import { loadTiledCasino, casinoTiledReady, CASINO_MAP_W, CASINO_MAP_H, CASINO_EXIT, isInCasinoExit } from "./tiledCasino";
+import { createCompanion, updateCompanion, loadCompanionSprite, Companion } from "./companion";
 
 interface DialogueState {
   active: boolean;
@@ -133,6 +134,7 @@ export default function GameCanvas() {
   const agentMenuRef = useRef<AgentMenuState>({ active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 });
   // Store overworld position to restore when exiting casino
   const overworldPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const companionRef = useRef<Companion>(createCompanion(playerRef.current));
 
   const getActiveMap = useCallback((): { map: number[][]; width: number; height: number } => {
     if (sceneRef.current === "casino") {
@@ -159,6 +161,8 @@ export default function GameCanvas() {
     playerRef.current.y = (CASINO_EXIT.y - 2) * TILE_SIZE;
     playerRef.current.direction = "up";
     sceneRef.current = "casino";
+    companionRef.current.x = playerRef.current.x - TILE_SIZE;
+    companionRef.current.y = playerRef.current.y;
     casinoIntroRef.current = { active: true, line: 0, dismissed: false };
   }, []);
 
@@ -168,6 +172,8 @@ export default function GameCanvas() {
     playerRef.current.y = overworldPosRef.current.y;
     playerRef.current.direction = "down";
     sceneRef.current = "overworld";
+    companionRef.current.x = playerRef.current.x - TILE_SIZE;
+    companionRef.current.y = playerRef.current.y;
   }, []);
 
   const tryInteract = useCallback(() => {
@@ -287,6 +293,7 @@ export default function GameCanvas() {
     loadAllSprites();
     loadTiledMap();
     loadTiledCasino();
+    loadCompanionSprite();
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -417,6 +424,7 @@ export default function GameCanvas() {
       if (!blocked) {
         updatePlayer(playerRef.current, keysRef.current, dt, mapData);
       }
+      updateCompanion(companionRef.current, playerRef.current, dt);
 
       ctx.imageSmoothingEnabled = false;
 
@@ -443,6 +451,7 @@ export default function GameCanvas() {
         sceneData,
         gameScreenRef.current.active ? gameScreenRef.current.type : null,
         agentMenuRef.current.active ? agentMenuRef.current : null,
+        companionRef.current,
       );
 
       animId = requestAnimationFrame(gameLoop);
