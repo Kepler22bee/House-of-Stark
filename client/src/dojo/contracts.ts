@@ -22,37 +22,20 @@ export interface GameResult {
 }
 
 /**
- * Step 1: Approve casino to spend ERC20 for the bet.
- */
-export async function approveBet(account: AccountInterface) {
-  console.log("[approveBet] FEE_TOKEN:", FEE_TOKEN_ADDRESS, "CASINO:", CASINO_ADDRESS);
-  try {
-    const res = await account.execute(
-      {
-        contractAddress: FEE_TOKEN_ADDRESS,
-        entrypoint: "approve",
-        calldata: [
-          CASINO_ADDRESS,      // spender
-          DEFAULT_BET_LOW,     // amount.low
-          DEFAULT_BET_HIGH,    // amount.high
-        ],
-      },
-    );
-    console.log("[approveBet] SUCCESS tx:", res.transaction_hash);
-    return res;
-  } catch (err: any) {
-    console.error("[approveBet] FAILED:", err);
-    console.error("[approveBet] Full error:", JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
-    throw err;
-  }
-}
-
-/**
- * Step 2: Place bet — mints EGS token, transfers ERC20 to casino.
+ * Step 1: Approve + place bet in a single multicall.
  * Returns transaction_hash. Call getTokenIdFromReceipt after.
  */
-export async function placeBet(account: AccountInterface, choice: number) {
-  return account.execute(
+export async function approveAndPlaceBet(account: AccountInterface, choice: number) {
+  return account.execute([
+    {
+      contractAddress: FEE_TOKEN_ADDRESS,
+      entrypoint: "approve",
+      calldata: [
+        CASINO_ADDRESS,  // spender
+        DEFAULT_BET_LOW, // amount.low
+        DEFAULT_BET_HIGH,// amount.high
+      ],
+    },
     {
       contractAddress: CASINO_ADDRESS,
       entrypoint: "place_bet",
@@ -61,7 +44,7 @@ export async function placeBet(account: AccountInterface, choice: number) {
         "1",               // player_name: Option::None (variant tag 1)
       ],
     },
-  );
+  ]);
 }
 
 /**

@@ -3,8 +3,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { RpcProvider } from "starknet";
 import { useAccount } from "@starknet-react/core";
 import {
-  approveBet,
-  placeBet,
+  approveAndPlaceBet,
   getTokenIdFromReceipt,
   flipCoin,
   settleBet,
@@ -21,7 +20,6 @@ interface CoinTossGameProps {
 
 type Step =
   | { id: "idle" }
-  | { id: "approving" }
   | { id: "betting" }
   | { id: "waiting_token" }
   | { id: "flipping" }
@@ -30,14 +28,13 @@ type Step =
   | { id: "error"; message: string };
 
 const STEP_LABELS: Partial<Record<Step["id"], string>> = {
-  approving: "Approving spend...",
-  betting: "Placing bet...",
+  betting: "Approving & placing bet...",
   waiting_token: "Confirming bet...",
   flipping: "Flipping (VRF)...",
   settling: "Settling bet...",
 };
 
-const STEPS_ORDER = ["approving", "betting", "waiting_token", "flipping", "settling"];
+const STEPS_ORDER = ["betting", "waiting_token", "flipping", "settling"];
 
 /* ── Keyframes injected once ─────────────────────────────────── */
 const KEYFRAMES = `
@@ -162,18 +159,9 @@ export default function CoinTossGame({ onClose, initialChoice, autoFlip }: CoinT
     if (!account || choice === null) return;
 
     try {
-      // Step 1: Approve ERC20
-      setStep({ id: "approving" });
-      const approveTx = await approveBet(account);
-
-      // Wait for approve to land
-      await (rpcProvider).waitForTransaction(approveTx.transaction_hash, {
-        retryInterval: 1000,
-      });
-
-      // Step 2: Place bet
+      // Step 1: Approve + Place bet in single multicall
       setStep({ id: "betting" });
-      const betTx = await placeBet(account, choice);
+      const betTx = await approveAndPlaceBet(account, choice);
 
       // Step 3: Extract token_id from receipt
       setStep({ id: "waiting_token" });

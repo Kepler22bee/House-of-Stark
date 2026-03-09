@@ -4,7 +4,7 @@ export const TORII_URL = process.env.NEXT_PUBLIC_TORII_URL ?? "http://localhost:
 // From manifest_sepolia.json — deployed to Starknet Sepolia
 export const COIN_TOSS_ADDRESS =
   process.env.NEXT_PUBLIC_COIN_TOSS_ADDRESS ??
-  "0x1e33735d5188d75d2079345e96fe7800a47a3196ff95298f35dd07e4285869d";
+  "0x36ad75d22f2db24c01d1c648d671f9f0547e8a7571315d6811fed9cd97ee8e9";
 
 // Cartridge VRF Provider — same address on mainnet, sepolia, and local Katana (with paymaster=true)
 export const VRF_PROVIDER_ADDRESS =
@@ -13,12 +13,12 @@ export const VRF_PROVIDER_ADDRESS =
 
 // Casino contract — deployed via sozo migrate (dojo contract)
 export const CASINO_ADDRESS =
-  process.env.NEXT_PUBLIC_CASINO_ADDRESS ?? "0x21cc1d7a52b01cc9307218dada1babcec2eceaba22fc767160540801ebfc674";
+  process.env.NEXT_PUBLIC_CASINO_ADDRESS ?? "0x6689d62de1e6c62b602d79cb17f173752516f1a59f64080c72e1cfb65345c40";
 
-// Fee token (ETH on Katana)
+// Fee token (STRK on Sepolia)
 export const FEE_TOKEN_ADDRESS =
   process.env.NEXT_PUBLIC_FEE_TOKEN_ADDRESS ??
-  "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
+  "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 
 // Legacy burner (kept for reference, not used with Cartridge Controller)
 export const BURNER_ADDRESS =

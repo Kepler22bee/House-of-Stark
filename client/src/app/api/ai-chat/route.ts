@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const AI_URL = process.env.AI_CHAT_URL ?? "https://six-rep-dialog-maintained.trycloudflare.com/v1/chat/completions";
+const AI_URL = process.env.AI_CHAT_URL ?? "https://jabbingly-nondeclarative-graig.ngrok-free.dev/v1/chat/completions";
 const AI_KEY = process.env.AI_CHAT_KEY ?? "";
 
 export async function POST(req: NextRequest) {

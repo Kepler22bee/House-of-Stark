@@ -38,7 +38,7 @@ pub mod casino {
     use openzeppelin_interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin_introspection::src5::SRC5Component;
 
-    const DEFAULT_BET: u256 = 1_000_000_000_000_000; // 0.001 ETH (1e15 wei)
+    const DEFAULT_BET: u256 = 1_000_000_000_000_000; // 0.001 STRK (1e15 wei)
 
     // Components
     component!(path: MetagameComponent, storage: metagame, event: MetagameEvent);
