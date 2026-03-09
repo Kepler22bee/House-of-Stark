@@ -271,82 +271,81 @@ function drawCasinoSign(ctx: CanvasRenderingContext2D) {
 }
 
 function drawClankerHouseSign(ctx: CanvasRenderingContext2D) {
-  // House is at rows 17-20, columns 15-19, roof at row 17
-  const signX = 15 * TILE_SIZE;
-  const signY = 17 * TILE_SIZE;
+  // Sign centered on the house near Clanker Workshop NPC at (22, 12)
+  // Draw it like the casino sign — on the building facade
+  const cx = 22 * TILE_SIZE + TILE_SIZE / 2;
+  const signY = 10 * TILE_SIZE;  // above the NPC, on the building
   const signW = 5 * TILE_SIZE;
+  const signH = TILE_SIZE * 1.2;
 
   const glow = Math.sin(Date.now() / 500) * 0.2 + 0.8;
   ctx.save();
-  ctx.font = "bold 12px 'Courier New', monospace";
+
+  // Sign background (like casino sign band)
+  ctx.fillStyle = "#0a1520";
+  ctx.fillRect(cx - signW / 2, signY, signW, signH);
+
+  // Sign border glow
+  ctx.strokeStyle = `rgba(136, 204, 255, ${glow * 0.6})`;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(cx - signW / 2 + 1, signY + 1, signW - 2, signH - 2);
+
+  // Main text
+  ctx.font = "bold 14px 'Courier New', monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  const textY = signY + signH / 2;
 
-  // Background pill
-  const text = "CLANKER HOUSE";
-  const tw = ctx.measureText(text).width + 16;
-  const cx = signX + signW / 2;
-  const cy = signY - 4;
-  ctx.fillStyle = `rgba(0, 0, 0, ${0.6 * glow})`;
-  ctx.beginPath();
-  ctx.roundRect(cx - tw / 2, cy - 9, tw, 18, 6);
-  ctx.fill();
-
-  // Border
-  ctx.strokeStyle = `rgba(136, 204, 255, ${glow})`;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect(cx - tw / 2, cy - 9, tw, 18, 6);
-  ctx.stroke();
-
-  // Text
+  // Glow layer
+  ctx.fillStyle = `rgba(136, 204, 255, ${glow * 0.3})`;
+  ctx.fillText("CLANKER HOUSE", cx, textY - 6);
   ctx.fillStyle = `rgba(136, 204, 255, ${glow})`;
-  ctx.fillText(text, cx, cy + 1);
+  ctx.fillText("CLANKER HOUSE", cx, textY - 6);
 
-  // Gear icon
-  ctx.font = "14px Arial";
-  ctx.fillText("⚙️", cx, cy - 18);
+  // Subtitle
+  ctx.font = "bold 9px 'Courier New', monospace";
+  ctx.fillStyle = `rgba(200, 230, 255, ${glow * 0.9})`;
+  ctx.fillText("A I  W O R K S H O P", cx, textY + 8);
 
   ctx.restore();
 }
 
-// Clanker Warehouse sign — to the left of the casino
+// Clanker Warehouse sign — to the left of the casino (same style as casino sign)
 function drawClankerWarehouseSign(ctx: CanvasRenderingContext2D) {
   // Position to the left of casino (casino is at x:37, so warehouse around x:31-35)
-  const signX = 31 * TILE_SIZE;
-  const signY = 27 * TILE_SIZE;
+  const cx = 33 * TILE_SIZE + TILE_SIZE / 2;
+  const signY = 28 * TILE_SIZE;
   const signW = 5 * TILE_SIZE;
+  const signH = TILE_SIZE * 1.2;
 
   const glow = Math.sin(Date.now() / 500) * 0.2 + 0.8;
   ctx.save();
-  ctx.font = "bold 11px 'Courier New', monospace";
+
+  // Sign background
+  ctx.fillStyle = "#1a0a0a";
+  ctx.fillRect(cx - signW / 2, signY, signW, signH);
+
+  // Sign border glow
+  ctx.strokeStyle = `rgba(255, 68, 68, ${glow * 0.6})`;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(cx - signW / 2 + 1, signY + 1, signW - 2, signH - 2);
+
+  // Main text
+  ctx.font = "bold 13px 'Courier New', monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  const textY = signY + signH / 2;
 
-  // Background pill
-  const text = "CLANKER WAREHOUSE";
-  const tw = ctx.measureText(text).width + 16;
-  const cx = signX + signW / 2;
-  const cy = signY - 4;
-  ctx.fillStyle = `rgba(0, 0, 0, ${0.6 * glow})`;
-  ctx.beginPath();
-  ctx.roundRect(cx - tw / 2, cy - 9, tw, 18, 6);
-  ctx.fill();
-
-  // Border — red/orange for warehouse vibe
-  ctx.strokeStyle = `rgba(255, 68, 68, ${glow})`;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect(cx - tw / 2, cy - 9, tw, 18, 6);
-  ctx.stroke();
-
-  // Text
+  // Glow layer
+  ctx.fillStyle = `rgba(255, 100, 100, ${glow * 0.3})`;
+  ctx.fillText("CLANKER WAREHOUSE", cx, textY - 6);
   ctx.fillStyle = `rgba(255, 100, 100, ${glow})`;
-  ctx.fillText(text, cx, cy + 1);
+  ctx.fillText("CLANKER WAREHOUSE", cx, textY - 6);
 
-  // Gear icon
-  ctx.font = "14px Arial";
-  ctx.fillText("⚙️", cx, cy - 18);
+  // Subtitle
+  ctx.font = "bold 9px 'Courier New', monospace";
+  ctx.fillStyle = `rgba(255, 200, 200, ${glow * 0.9})`;
+  ctx.fillText("T - 8 0 0  U P G R A D E S", cx, textY + 8);
 
   ctx.restore();
 }
