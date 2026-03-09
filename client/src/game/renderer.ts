@@ -84,6 +84,7 @@ export function renderGame(
   // Draw scene label inside casino
   if (scene === "casino") {
     drawCasinoInteriorLabel(ctx);
+    drawTablePointers(ctx);
   }
 
   // Draw NPCs
@@ -234,6 +235,54 @@ function drawCasinoSign(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = `rgba(200, 230, 255, ${glow * 0.9})`;
   ctx.fillText("CASINO", signX + signW / 2, signY + 26);
 
+  ctx.restore();
+}
+
+function drawTablePointers(ctx: CanvasRenderingContext2D) {
+  const bob = Math.sin(Date.now() / 500) * 4;
+  const glow = Math.sin(Date.now() / 400) * 0.15 + 0.85;
+
+  const tables = [
+    { label: "🪙 COIN TOSS", color: "#fdd835", x: 3.5, y: 5.2 },
+    { label: "📈 PRICE PREDICTION", color: "#00d2ff", x: 25.5, y: 5.2 },
+    { label: "👑 VIP TABLES", color: "#e91e63", x: 15, y: 9.5 },
+  ];
+
+  ctx.save();
+  for (const t of tables) {
+    const px = t.x * TILE_SIZE;
+    const py = t.y * TILE_SIZE + bob;
+
+    ctx.font = "bold 11px 'Courier New', monospace";
+    ctx.textAlign = "center";
+    const tw = ctx.measureText(t.label).width + 16;
+
+    // Background pill
+    ctx.fillStyle = `rgba(0, 0, 0, ${0.7 * glow})`;
+    ctx.beginPath();
+    ctx.roundRect(px - tw / 2, py - 8, tw, 18, 6);
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = t.color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(px - tw / 2, py - 8, tw, 18, 6);
+    ctx.stroke();
+
+    // Text
+    ctx.fillStyle = t.color;
+    ctx.fillText(t.label, px, py + 5);
+
+    // Down arrow
+    ctx.beginPath();
+    ctx.moveTo(px - 5, py + 14);
+    ctx.lineTo(px + 5, py + 14);
+    ctx.lineTo(px, py + 20);
+    ctx.closePath();
+    ctx.fillStyle = t.color;
+    ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -610,6 +659,12 @@ function drawIntroOverlay(
   if (blink) {
     ctx.fillText(`Press E to continue (${intro.line + 1}/${totalDots})`, canvasW / 2, boxY + boxH - 14);
   }
+
+  // Skip hint
+  ctx.font = "bold 13px 'Courier New', monospace";
+  ctx.fillStyle = "#8a7a50";
+  ctx.textAlign = "right";
+  ctx.fillText("[ESC] Skip", boxX + boxW - 16, boxY + 24);
 }
 
 function drawDialogueBox(
@@ -694,7 +749,7 @@ function drawDialogueBox(
   ctx.textAlign = "right";
   const blink = Math.sin(Date.now() / 400) > 0;
   if (blink) {
-    ctx.fillText("Press E to continue ▶", boxX + boxW - 16, boxY + boxH - 10);
+    ctx.fillText("[E] Continue   [ESC] Skip", boxX + boxW - 16, boxY + boxH - 10);
   }
 }
 

@@ -5,7 +5,8 @@ import { renderGame, SceneData } from "./renderer";
 import { npcs, NPC, gameMap, MAP_WIDTH, MAP_HEIGHT, tileInteractions } from "./map";
 import { casinoMap, CASINO_MAP_WIDTH, CASINO_MAP_HEIGHT, casinoNpcs, casinoTileInteractions } from "./casino-map";
 import { TILE_INFO, TileType, TILE_SIZE } from "./tiles";
-import CoinTossOverlay from "./CoinTossOverlay";
+import { CoinTossGame } from "../games/coin-toss";
+import { PricePredictionGame } from "../games/price-prediction";
 
 interface DialogueState {
   active: boolean;
@@ -179,19 +180,19 @@ export default function GameCanvas() {
       return;
     }
 
-    // Handle game screen dismiss
-    if (gameScreenRef.current.active) {
-      gameScreenRef.current = { active: false, type: null };
-      setActiveGameScreen(null);
-      return;
-    }
-
     // Handle casino intro
     if (casinoIntroRef.current.active) {
       casinoIntroRef.current.line++;
       if (casinoIntroRef.current.line >= CASINO_INTRO_LINES.length) {
         casinoIntroRef.current = { active: false, line: 0, dismissed: true };
       }
+      return;
+    }
+
+    // Handle game screen dismiss
+    if (gameScreenRef.current.active) {
+      gameScreenRef.current = { active: false, type: null };
+      setActiveGameScreen(null);
       return;
     }
 
@@ -324,10 +325,33 @@ export default function GameCanvas() {
         }
         return;
       }
-      if (e.key === "Escape" && gameScreenRef.current.active) {
-        gameScreenRef.current = { active: false, type: null };
-        setActiveGameScreen(null);
-        return;
+      if (e.key === "Escape") {
+        // Skip all text / close overlays
+        if (introRef.current.active) {
+          introRef.current = { active: false, line: 0, dismissed: true };
+          return;
+        }
+        if (casinoIntroRef.current.active) {
+          casinoIntroRef.current = { active: false, line: 0, dismissed: true };
+          return;
+        }
+        if (dialogueRef.current.active) {
+          const npcName = dialogueRef.current.npc?.name;
+          dialogueRef.current = { active: false, npc: null, line: 0 };
+          if (npcName === YUKI_NAME && sceneRef.current === "overworld") {
+            switchToCasino();
+          }
+          return;
+        }
+        if (tileDialogueRef.current.active) {
+          tileDialogueRef.current = { active: false, lines: [], line: 0 };
+          return;
+        }
+        if (gameScreenRef.current.active) {
+          gameScreenRef.current = { active: false, type: null };
+          setActiveGameScreen(null);
+          return;
+        }
       }
       if (e.key === "e" || e.key === "E" || e.key === "Enter" || e.key === " ") {
         tryInteract();
@@ -489,52 +513,10 @@ export default function GameCanvas() {
         }}
       />
       {activeGameScreen === "coin_toss" && (
-        <CoinTossOverlay onClose={closeGameScreen} />
+        <CoinTossGame onClose={closeGameScreen} />
       )}
       {activeGameScreen === "price_prediction" && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 100,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.75)",
-          }}
-        >
-          <div
-            style={{
-              background: "#0a0a14",
-              border: "2px solid #00d2ff",
-              borderRadius: 12,
-              padding: "40px",
-              textAlign: "center",
-              fontFamily: "'Courier New', monospace",
-            }}
-          >
-            <h2 style={{ color: "#00d2ff", fontSize: 24, marginBottom: 8 }}>
-              PRICE PREDICTION
-            </h2>
-            <p style={{ color: "#555", fontSize: 16, marginBottom: 20 }}>
-              Coming Soon
-            </p>
-            <button
-              onClick={closeGameScreen}
-              style={{
-                padding: "8px 24px",
-                background: "#111",
-                border: "1px solid #00d2ff",
-                borderRadius: 6,
-                color: "#00d2ff",
-                cursor: "pointer",
-                fontFamily: "'Courier New', monospace",
-              }}
-            >
-              Close [E]
-            </button>
-          </div>
-        </div>
+        <PricePredictionGame onClose={closeGameScreen} />
       )}
     </>
   );
