@@ -1,6 +1,7 @@
 import { TILE_SIZE, TILE_INFO, TileType, drawTile } from "./tiles";
 import { gameMap, MAP_WIDTH, MAP_HEIGHT, npcs, NPC } from "./map";
 import { Player, drawPlayer, MapData, getFacingTile } from "./player";
+import { Robot, drawRobot } from "./robot";
 import { AgentMenuState, AgentData, MOCK_AGENTS, SHOP_POWERS, playerMoney } from "./GameCanvas";
 
 export interface SceneData {
@@ -39,6 +40,7 @@ export function renderGame(
   sceneData?: SceneData,
   gameScreen?: "coin_toss" | "price_prediction" | null,
   agentMenu?: AgentMenuState | null,
+  robot?: Robot | null,
 ) {
   const activeMap = sceneData?.map ?? gameMap;
   const activeW = sceneData?.mapWidth ?? MAP_WIDTH;
@@ -90,6 +92,11 @@ export function renderGame(
   // Draw NPCs
   for (const npc of activeNpcs) {
     drawNPC(ctx, npc, player);
+  }
+
+  // Draw robot companion (behind player)
+  if (robot) {
+    drawRobot(ctx, robot, player);
   }
 
   // Draw player
@@ -474,11 +481,11 @@ function drawUI(
   // Controls overlay (top left) — hide during intro
   if (!introOverlay) {
     ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(10, 10, 300, 44);
+    ctx.fillRect(10, 10, 380, 44);
     ctx.font = "bold 20px 'Courier New', monospace";
     ctx.fillStyle = "#8ecae6";
     ctx.textAlign = "left";
-    ctx.fillText("WASD: Move  E: Interact", 20, 38);
+    ctx.fillText("WASD: Move  E: Interact  B: AI", 20, 38);
   }
 
   // Proximity prompt for interactable tiles

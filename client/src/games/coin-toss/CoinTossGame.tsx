@@ -103,6 +103,9 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
   const [choice, setChoice] = useState<number | null>(null);
   const [step, setStep] = useState<Step>({ id: "idle" });
   const [coinHover, setCoinHover] = useState<number | null>(null);
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiHistory, setAiHistory] = useState<{ choice: string; won: boolean }[]>([]);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -118,6 +121,48 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
     },
     [onClose]
   );
+
+  const askAI = useCallback(async () => {
+    setAiLoading(true);
+    setAiAdvice(null);
+    try {
+      const historyContext = aiHistory.length > 0
+        ? `\nRecent results: ${aiHistory.slice(-5).map(h => `${h.choice} → ${h.won ? "WIN" : "LOSS"}`).join(", ")}`
+        : "";
+      const res = await fetch("https://six-rep-dialog-maintained.trycloudflare.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ieAVhzun-v2rkGvi3IkNNRvbMoEJj862upk8Rb2LJAo",
+        },
+        body: JSON.stringify({
+          model: "gemma3:4b",
+          messages: [
+            {
+              role: "system",
+              content: "You are a superstitious casino advisor AI in a blockchain coin toss game. Give a short, confident pick (HEADS or TAILS) with a brief fun reason. Max 2 sentences. Be dramatic and entertaining."
+            },
+            {
+              role: "user",
+              content: `I'm about to flip a coin. Should I pick HEADS or TAILS?${historyContext}\nGive me your pick and a quick reason.`
+            }
+          ],
+          max_tokens: 80,
+          temperature: 1.0,
+        }),
+      });
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content ?? "The spirits are silent...";
+      setAiAdvice(text);
+      // Auto-select if AI mentions heads or tails
+      const lower = text.toLowerCase();
+      if (lower.includes("heads") && !lower.includes("tails")) setChoice(0);
+      else if (lower.includes("tails") && !lower.includes("heads")) setChoice(1);
+    } catch {
+      setAiAdvice("Connection to the oracle failed... trust your gut!");
+    }
+    setAiLoading(false);
+  }, [aiHistory]);
 
   const handleFlip = useCallback(async () => {
     if (!account || choice === null) return;
@@ -159,6 +204,7 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
 
       // Step 6: Read result
       const result = await readGameResult(rpcProvider, tokenId);
+      setAiHistory(prev => [...prev, { choice: choice === 0 ? "HEADS" : "TAILS", won: result.won }]);
       setStep({ id: "done", result });
     } catch (err: any) {
       const msg = err?.message ?? "Transaction failed";
@@ -169,6 +215,7 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
   const reset = useCallback(() => {
     setStep({ id: "idle" });
     setChoice(null);
+    setAiAdvice(null);
   }, []);
 
   const isProcessing = STEPS_ORDER.includes(step.id);
@@ -341,6 +388,67 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
                     onHover={() => setCoinHover(1)}
                     onLeave={() => setCoinHover(null)}
                   />
+                </div>
+
+                {/* AI Advisor */}
+                <div style={{ marginBottom: 16 }}>
+                  {!aiAdvice && !aiLoading && (
+                    <button
+                      onClick={askAI}
+                      style={{
+                        display: "block",
+                        width: "100%",
+                        padding: "10px 0",
+                        fontSize: 12,
+                        fontWeight: "bold",
+                        fontFamily: "'Courier New', monospace",
+                        letterSpacing: "0.1em",
+                        border: "1px solid #7c4dff",
+                        borderRadius: 8,
+                        background: "rgba(124,77,255,0.08)",
+                        color: "#b388ff",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "rgba(124,77,255,0.18)";
+                        e.currentTarget.style.borderColor = "#b388ff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "rgba(124,77,255,0.08)";
+                        e.currentTarget.style.borderColor = "#7c4dff";
+                      }}
+                    >
+                      ASK AI ORACLE
+                    </button>
+                  )}
+                  {aiLoading && (
+                    <div style={{
+                      textAlign: "center",
+                      padding: "10px 0",
+                      fontSize: 12,
+                      color: "#b388ff",
+                      animation: "glowPulse 1.5s ease-in-out infinite",
+                    }}>
+                      <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>&#9734;</span>
+                      {" "}Consulting the oracle...
+                    </div>
+                  )}
+                  {aiAdvice && (
+                    <div style={{
+                      background: "rgba(124,77,255,0.06)",
+                      border: "1px solid rgba(124,77,255,0.3)",
+                      borderRadius: 8,
+                      padding: "10px 14px",
+                    }}>
+                      <div style={{ fontSize: 9, color: "#7c4dff", letterSpacing: "0.15em", marginBottom: 4, fontWeight: "bold" }}>
+                        AI ORACLE
+                      </div>
+                      <p style={{ color: "#d1c4e9", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
+                        {aiAdvice}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Flip button */}

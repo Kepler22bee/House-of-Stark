@@ -5,6 +5,7 @@ import { renderGame, SceneData } from "./renderer";
 import { npcs, NPC, gameMap, MAP_WIDTH, MAP_HEIGHT, tileInteractions } from "./map";
 import { casinoMap, CASINO_MAP_WIDTH, CASINO_MAP_HEIGHT, casinoNpcs, casinoTileInteractions } from "./casino-map";
 import { TILE_INFO, TileType, TILE_SIZE } from "./tiles";
+import { createRobot, updateRobot, Robot } from "./robot";
 import { CoinTossGame } from "../games/coin-toss";
 import { PricePredictionGame } from "../games/price-prediction";
 
@@ -131,9 +132,15 @@ export default function GameCanvas() {
   const casinoIntroRef = useRef<IntroState>({ active: false, line: 0, dismissed: false });
   const agentMenuRef = useRef<AgentMenuState>({ active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 });
   const overworldPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const robotRef = useRef<Robot>(createRobot(playerRef.current));
 
   // React state for game overlays (so React components render)
   const [activeGameScreen, setActiveGameScreen] = useState<"coin_toss" | "price_prediction" | null>(null);
+  const [aiChatOpen, setAiChatOpen] = useState(false);
+  const [aiChatMessages, setAiChatMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
+  const [aiChatInput, setAiChatInput] = useState("");
+  const [aiChatLoading, setAiChatLoading] = useState(false);
+  const aiChatInputRef = useRef<HTMLInputElement>(null);
 
   const getActiveMap = useCallback((): { map: number[][]; width: number; height: number } => {
     if (sceneRef.current === "casino") {
@@ -303,26 +310,9 @@ export default function GameCanvas() {
     const handleKeyDown = (e: KeyboardEvent) => {
       keysRef.current.add(e.key);
       if (e.key === "b" || e.key === "B") {
-        if (agentMenuRef.current.active) {
-          agentMenuRef.current = { active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 };
-        } else {
-          agentMenuRef.current = { active: true, tab: "agents", selectedAgent: 0, scrollOffset: 0 };
-        }
-        return;
-      }
-      if (agentMenuRef.current.active) {
-        if (e.key === "Escape" || e.key === "x" || e.key === "X") {
-          agentMenuRef.current = { active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 };
-        } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
-          agentMenuRef.current.selectedAgent = Math.min(agentMenuRef.current.selectedAgent + 1, MOCK_AGENTS.length - 1);
-        } else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
-          agentMenuRef.current.selectedAgent = Math.max(agentMenuRef.current.selectedAgent - 1, 0);
-        } else if (e.key === "Tab") {
-          e.preventDefault();
-          const tabs: AgentMenuState["tab"][] = ["agents", "shop"];
-          const idx = tabs.indexOf(agentMenuRef.current.tab);
-          agentMenuRef.current.tab = tabs[(idx + 1) % tabs.length];
-        }
+        // Don't toggle if AI chat input is focused (let user type 'b')
+        if (document.activeElement?.tagName === "INPUT") return;
+        setAiChatOpen(prev => !prev);
         return;
       }
       if (e.key === "Escape") {
@@ -459,6 +449,9 @@ export default function GameCanvas() {
         updatePlayer(playerRef.current, keysRef.current, dt, mapData);
       }
 
+      // Always update robot (follows player even during dialogues)
+      updateRobot(robotRef.current, playerRef.current, dt);
+
       ctx.imageSmoothingEnabled = false;
 
       const sceneData: SceneData = {
@@ -484,6 +477,7 @@ export default function GameCanvas() {
         sceneData,
         null, // Game screens are now React overlays, not canvas-drawn
         agentMenuRef.current.active ? agentMenuRef.current : null,
+        robotRef.current,
       );
 
       animId = requestAnimationFrame(gameLoop);
@@ -503,6 +497,42 @@ export default function GameCanvas() {
     gameScreenRef.current = { active: false, type: null };
     setActiveGameScreen(null);
   }, []);
+
+  const sendAiChat = useCallback(async () => {
+    const msg = aiChatInput.trim();
+    if (!msg || aiChatLoading) return;
+    setAiChatInput("");
+    setAiChatMessages(prev => [...prev, { role: "user", text: msg }]);
+    setAiChatLoading(true);
+    try {
+      const scene = sceneRef.current;
+      const systemPrompt = `You are Wall-E, a small helpful robot companion in a casino game called Fortune Falls. You follow the player everywhere and help them with betting advice, game tips, and fun commentary. You speak in short, quirky sentences — sometimes mechanical, always endearing. You know about Coin Toss (heads/tails, double-or-nothing) and Price Prediction games. The player is currently in the ${scene}. Keep responses under 60 words.`;
+      const res = await fetch("https://six-rep-dialog-maintained.trycloudflare.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ieAVhzun-v2rkGvi3IkNNRvbMoEJj862upk8Rb2LJAo",
+        },
+        body: JSON.stringify({
+          model: "gemma3:4b",
+          messages: [
+            { role: "system", content: systemPrompt },
+            ...aiChatMessages.slice(-6).map(m => ({ role: m.role, content: m.text })),
+            { role: "user", content: msg },
+          ],
+          max_tokens: 100,
+          temperature: 0.9,
+        }),
+      });
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content ?? "Bzzt... signal lost. Try again!";
+      setAiChatMessages(prev => [...prev, { role: "assistant", text: reply }]);
+    } catch {
+      setAiChatMessages(prev => [...prev, { role: "assistant", text: "*beep boop* Connection error... my antenna must be rusty!" }]);
+    } finally {
+      setAiChatLoading(false);
+    }
+  }, [aiChatInput, aiChatLoading, aiChatMessages]);
 
   return (
     <>
@@ -525,6 +555,135 @@ export default function GameCanvas() {
       )}
       {activeGameScreen === "price_prediction" && (
         <PricePredictionGame onClose={closeGameScreen} />
+      )}
+      {aiChatOpen && (
+        <div style={{
+          position: "fixed",
+          bottom: 20,
+          right: 20,
+          width: 340,
+          maxHeight: 420,
+          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+          border: "2px solid #88ccff",
+          borderRadius: 12,
+          display: "flex",
+          flexDirection: "column",
+          fontFamily: "'Courier New', monospace",
+          zIndex: 1000,
+          boxShadow: "0 0 20px rgba(136,204,255,0.3)",
+        }}>
+          {/* Header */}
+          <div style={{
+            padding: "10px 14px",
+            borderBottom: "1px solid rgba(136,204,255,0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 20 }}>🤖</span>
+              <span style={{ color: "#88ccff", fontWeight: "bold", fontSize: 14 }}>WALL-E</span>
+              <span style={{ color: "#4a6a8a", fontSize: 10 }}>AI Companion</span>
+            </div>
+            <button
+              onClick={() => setAiChatOpen(false)}
+              style={{
+                background: "none",
+                border: "1px solid #4a6a8a",
+                color: "#88ccff",
+                borderRadius: 4,
+                padding: "2px 8px",
+                cursor: "pointer",
+                fontSize: 12,
+                fontFamily: "'Courier New', monospace",
+              }}
+            >ESC</button>
+          </div>
+          {/* Messages */}
+          <div style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "10px 14px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            maxHeight: 280,
+            minHeight: 120,
+          }}>
+            {aiChatMessages.length === 0 && (
+              <div style={{ color: "#4a6a8a", fontSize: 12, textAlign: "center", marginTop: 20 }}>
+                *whirrs* Hello! I&apos;m Wall-E.<br />Ask me anything about the games!
+              </div>
+            )}
+            {aiChatMessages.map((m, i) => (
+              <div key={i} style={{
+                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                background: m.role === "user" ? "#2a4a6a" : "#1a2a3e",
+                border: `1px solid ${m.role === "user" ? "#3a6a9a" : "#88ccff44"}`,
+                borderRadius: 8,
+                padding: "6px 10px",
+                maxWidth: "85%",
+                fontSize: 12,
+                color: m.role === "user" ? "#cde" : "#88ccff",
+                lineHeight: 1.4,
+              }}>
+                {m.role === "assistant" && <span style={{ marginRight: 4 }}>🤖</span>}
+                {m.text}
+              </div>
+            ))}
+            {aiChatLoading && (
+              <div style={{ color: "#88ccff", fontSize: 12, fontStyle: "italic" }}>
+                🤖 *processing beeps*...
+              </div>
+            )}
+          </div>
+          {/* Input */}
+          <div style={{
+            padding: "8px 14px 10px",
+            borderTop: "1px solid rgba(136,204,255,0.3)",
+            display: "flex",
+            gap: 8,
+          }}>
+            <input
+              ref={aiChatInputRef}
+              value={aiChatInput}
+              onChange={e => setAiChatInput(e.target.value)}
+              onKeyDown={e => {
+                e.stopPropagation();
+                if (e.key === "Enter") sendAiChat();
+                if (e.key === "Escape") setAiChatOpen(false);
+              }}
+              placeholder="Ask Wall-E..."
+              autoFocus
+              style={{
+                flex: 1,
+                background: "#0a1020",
+                border: "1px solid #3a5a7a",
+                borderRadius: 6,
+                padding: "6px 10px",
+                color: "#cde",
+                fontSize: 12,
+                fontFamily: "'Courier New', monospace",
+                outline: "none",
+              }}
+            />
+            <button
+              onClick={sendAiChat}
+              disabled={aiChatLoading}
+              style={{
+                background: aiChatLoading ? "#2a3a4a" : "#d4a030",
+                border: "none",
+                borderRadius: 6,
+                padding: "6px 12px",
+                color: "#1a1a2e",
+                fontWeight: "bold",
+                fontSize: 12,
+                cursor: aiChatLoading ? "default" : "pointer",
+                fontFamily: "'Courier New', monospace",
+              }}
+            >Send</button>
+          </div>
+        </div>
       )}
     </>
   );
