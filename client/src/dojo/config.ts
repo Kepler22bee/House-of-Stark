@@ -1,10 +1,10 @@
 export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL ?? "https://api.cartridge.gg/x/starknet/sepolia";
 export const TORII_URL = process.env.NEXT_PUBLIC_TORII_URL ?? "http://localhost:8080";
 
-// From manifest_dev.json — update after each sozo migrate
+// From manifest_sepolia.json — deployed to Starknet Sepolia
 export const COIN_TOSS_ADDRESS =
   process.env.NEXT_PUBLIC_COIN_TOSS_ADDRESS ??
-  "0x4c622d07d621394e2238c075abbeecb5d0ae16174a843b08e268383b590538";
+  "0x1e33735d5188d75d2079345e96fe7800a47a3196ff95298f35dd07e4285869d";
 
 // Cartridge VRF Provider — same address on mainnet, sepolia, and local Katana (with paymaster=true)
 export const VRF_PROVIDER_ADDRESS =
@@ -13,7 +13,7 @@ export const VRF_PROVIDER_ADDRESS =
 
 // Casino contract — deployed via sozo migrate (dojo contract)
 export const CASINO_ADDRESS =
-  process.env.NEXT_PUBLIC_CASINO_ADDRESS ?? "0x0";
+  process.env.NEXT_PUBLIC_CASINO_ADDRESS ?? "0x21cc1d7a52b01cc9307218dada1babcec2eceaba22fc767160540801ebfc674";
 
 // Fee token (ETH on Katana)
 export const FEE_TOKEN_ADDRESS =
