@@ -473,6 +473,15 @@ export default function GameCanvas() {
       }
       updateCompanion(companionRef.current, playerRef.current, dt);
 
+      // Auto-exit casino when walking into exit zone
+      if (sceneRef.current === "casino" && casinoTiledReady() && !blocked) {
+        const ptx = Math.floor((playerRef.current.x + TILE_SIZE / 2) / TILE_SIZE);
+        const pty = Math.floor((playerRef.current.y + TILE_SIZE / 2) / TILE_SIZE);
+        if (isInCasinoExit(ptx, pty)) {
+          switchToOverworld();
+        }
+      }
+
 
       ctx.imageSmoothingEnabled = false;
 
