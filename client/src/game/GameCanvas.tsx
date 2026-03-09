@@ -254,25 +254,6 @@ export default function GameCanvas() {
         return;
       }
 
-      // Clanker Warehouse — blue house upper-left of casino
-      const whX = 27 * TILE_SIZE;
-      const whY = 26 * TILE_SIZE;
-      const whDist = Math.sqrt(
-        Math.pow(player.x - whX, 2) + Math.pow(player.y - whY, 2)
-      );
-      if (whDist < 60) {
-        tileDialogueRef.current = {
-          active: true,
-          lines: [
-            "Clanker Warehouse — T-800 Upgrade Bay",
-            "New upgrades to T-800 coming SOON!",
-            "Neural Boost, Memory Bank, Turbo Core...",
-            "Check back later, human.",
-          ],
-          line: 0,
-        };
-        return;
-      }
     }
 
     const activeNpcs = getActiveNpcs();

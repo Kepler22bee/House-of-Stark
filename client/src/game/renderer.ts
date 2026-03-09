@@ -100,7 +100,6 @@ export function renderGame(
   }
   if (scene === "overworld") {
     drawClankerHouseSign(ctx);
-    drawClankerWarehouseSign(ctx);
   }
 
   // Draw scene label inside casino
@@ -273,8 +272,8 @@ function drawCasinoSign(ctx: CanvasRenderingContext2D) {
 function drawClankerHouseSign(ctx: CanvasRenderingContext2D) {
   // Sign centered on the house near Clanker Workshop NPC at (22, 12)
   // Draw it like the casino sign — on the building facade
-  const cx = 22 * TILE_SIZE + TILE_SIZE / 2;
-  const signY = 10 * TILE_SIZE;  // above the NPC, on the building
+  const cx = 27 * TILE_SIZE + TILE_SIZE / 2;
+  const signY = 17 * TILE_SIZE;
   const signW = 5 * TILE_SIZE;
   const signH = TILE_SIZE * 1.2;
 
@@ -306,46 +305,6 @@ function drawClankerHouseSign(ctx: CanvasRenderingContext2D) {
   ctx.font = "bold 9px 'Courier New', monospace";
   ctx.fillStyle = `rgba(200, 230, 255, ${glow * 0.9})`;
   ctx.fillText("A I  W O R K S H O P", cx, textY + 8);
-
-  ctx.restore();
-}
-
-// Clanker Warehouse sign — to the left of the casino (same style as casino sign)
-function drawClankerWarehouseSign(ctx: CanvasRenderingContext2D) {
-  // Position on the blue house upper-left of casino
-  const cx = 27 * TILE_SIZE;
-  const signY = 22 * TILE_SIZE;
-  const signW = 5 * TILE_SIZE;
-  const signH = TILE_SIZE * 1.2;
-
-  const glow = Math.sin(Date.now() / 500) * 0.2 + 0.8;
-  ctx.save();
-
-  // Sign background
-  ctx.fillStyle = "#1a0a0a";
-  ctx.fillRect(cx - signW / 2, signY, signW, signH);
-
-  // Sign border glow
-  ctx.strokeStyle = `rgba(255, 68, 68, ${glow * 0.6})`;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(cx - signW / 2 + 1, signY + 1, signW - 2, signH - 2);
-
-  // Main text
-  ctx.font = "bold 13px 'Courier New', monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const textY = signY + signH / 2;
-
-  // Glow layer
-  ctx.fillStyle = `rgba(255, 100, 100, ${glow * 0.3})`;
-  ctx.fillText("CLANKER WAREHOUSE", cx, textY - 6);
-  ctx.fillStyle = `rgba(255, 100, 100, ${glow})`;
-  ctx.fillText("CLANKER WAREHOUSE", cx, textY - 6);
-
-  // Subtitle
-  ctx.font = "bold 9px 'Courier New', monospace";
-  ctx.fillStyle = `rgba(255, 200, 200, ${glow * 0.9})`;
-  ctx.fillText("T - 8 0 0  U P G R A D E S", cx, textY + 8);
 
   ctx.restore();
 }
