@@ -733,6 +733,7 @@ function drawUI(
     ctx.fillStyle = "#8ecae6";
     ctx.textAlign = "left";
     ctx.fillText("WASD: Move  E: Interact  B: AI", 20, 38);
+
   }
 
   // Proximity prompt for interactable tiles

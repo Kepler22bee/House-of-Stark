@@ -19,41 +19,53 @@ export default function GamePage() {
   return (
     <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#0a0a0a" }}>
       <GameCanvas />
-      {/* Burner account indicator */}
+      {/* Wallet + Coins */}
       <div
         style={{
           position: "fixed",
-          top: 12,
-          right: 12,
+          top: 10,
+          left: "50%",
+          transform: "translateX(-50%)",
           zIndex: 50,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          gap: 8,
         }}
       >
-        <span
+        {/* Address */}
+        <div
           style={{
+            background: "rgba(0,0,0,0.85)",
+            border: "2px solid #fdd835",
+            borderRadius: "12px 12px 0 0",
+            padding: "8px 24px",
             fontFamily: "'Courier New', monospace",
-            fontSize: 13,
-            color: "#4caf50",
-            border: "1px solid #4caf5044",
-            background: "#4caf5011",
-            padding: "6px 12px",
-            borderRadius: 8,
+            fontSize: 18,
+            fontWeight: "bold",
+            color: "#fdd835",
+            letterSpacing: 1,
           }}
         >
           {shortAddr}
-        </span>
-        <span
+        </div>
+        {/* Coins - down arrow shape */}
+        <div
           style={{
+            background: "rgba(0,0,0,0.85)",
+            border: "2px solid #fdd835",
+            borderTop: "none",
+            borderRadius: "0 0 12px 12px",
+            padding: "6px 20px",
             fontFamily: "'Courier New', monospace",
-            fontSize: 10,
+            fontSize: 16,
+            fontWeight: "bold",
             color: "#fdd835",
-            opacity: 0.6,
+            clipPath: "polygon(0 0, 100% 0, 85% 100%, 15% 100%)",
+            paddingBottom: 14,
           }}
         >
-          BURNER
-        </span>
+          💰 3500 COINS
+        </div>
       </div>
     </div>
   );
