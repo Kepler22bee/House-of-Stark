@@ -10,6 +10,17 @@ import {
 const DEFAULT_BET_LOW = "0x38D7EA4C68000";
 const DEFAULT_BET_HIGH = "0x0";
 
+// Katana: skip fee estimation and tip calculation, use fixed resource bounds
+const KATANA_TX_OPTS = {
+  skipValidate: true,
+  tip: 0,
+  resourceBounds: {
+    l1_gas: { max_amount: BigInt(1000000), max_price_per_unit: BigInt(100000000000) },
+    l2_gas: { max_amount: BigInt(1000000000), max_price_per_unit: BigInt(100000000000) },
+    l1_data_gas: { max_amount: BigInt(1000000), max_price_per_unit: BigInt(100000000000) },
+  },
+};
+
 // ERC721 Transfer event selector — keccak("Transfer")
 const TRANSFER_SELECTOR = hash.getSelectorFromName("Transfer");
 
@@ -23,15 +34,27 @@ export interface GameResult {
  * Step 1: Approve casino to spend ERC20 for the bet.
  */
 export async function approveBet(account: AccountInterface) {
-  return account.execute({
-    contractAddress: FEE_TOKEN_ADDRESS,
-    entrypoint: "approve",
-    calldata: [
-      CASINO_ADDRESS,      // spender
-      DEFAULT_BET_LOW,     // amount.low
-      DEFAULT_BET_HIGH,    // amount.high
-    ],
-  });
+  console.log("[approveBet] FEE_TOKEN:", FEE_TOKEN_ADDRESS, "CASINO:", CASINO_ADDRESS);
+  try {
+    const res = await account.execute(
+      {
+        contractAddress: FEE_TOKEN_ADDRESS,
+        entrypoint: "approve",
+        calldata: [
+          CASINO_ADDRESS,      // spender
+          DEFAULT_BET_LOW,     // amount.low
+          DEFAULT_BET_HIGH,    // amount.high
+        ],
+      },
+      KATANA_TX_OPTS,
+    );
+    console.log("[approveBet] SUCCESS tx:", res.transaction_hash);
+    return res;
+  } catch (err: any) {
+    console.error("[approveBet] FAILED:", err);
+    console.error("[approveBet] Full error:", JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
+    throw err;
+  }
 }
 
 /**
@@ -39,14 +62,17 @@ export async function approveBet(account: AccountInterface) {
  * Returns transaction_hash. Call getTokenIdFromReceipt after.
  */
 export async function placeBet(account: AccountInterface, choice: number) {
-  return account.execute({
-    contractAddress: CASINO_ADDRESS,
-    entrypoint: "place_bet",
-    calldata: [
-      choice.toString(), // choice: u8 (0=heads, 1=tails)
-      "1",               // player_name: Option::None (variant tag 1)
-    ],
-  });
+  return account.execute(
+    {
+      contractAddress: CASINO_ADDRESS,
+      entrypoint: "place_bet",
+      calldata: [
+        choice.toString(), // choice: u8 (0=heads, 1=tails)
+        "1",               // player_name: Option::None (variant tag 1)
+      ],
+    },
+    KATANA_TX_OPTS,
+  );
 }
 
 /**
@@ -98,38 +124,44 @@ export async function flipCoin(
   tokenId: number,
   choice: number
 ) {
-  return account.execute([
-    // First: request VRF randomness from Cartridge
-    {
-      contractAddress: VRF_PROVIDER_ADDRESS,
-      entrypoint: "request_random",
-      calldata: [
-        COIN_TOSS_ADDRESS, // caller: ContractAddress
-        "0",               // Source::Nonce variant tag
-        COIN_TOSS_ADDRESS, // Nonce(coin_toss_address)
-      ],
-    },
-    // Then: flip using that randomness
-    {
-      contractAddress: COIN_TOSS_ADDRESS,
-      entrypoint: "flip",
-      calldata: [
-        tokenId.toString(), // token_id: u64
-        choice.toString(),  // choice: u8
-      ],
-    },
-  ]);
+  return account.execute(
+    [
+      // First: request VRF randomness from Cartridge
+      {
+        contractAddress: VRF_PROVIDER_ADDRESS,
+        entrypoint: "request_random",
+        calldata: [
+          COIN_TOSS_ADDRESS, // caller: ContractAddress
+          "0",               // Source::Nonce variant tag
+          COIN_TOSS_ADDRESS, // Nonce(coin_toss_address)
+        ],
+      },
+      // Then: flip using that randomness
+      {
+        contractAddress: COIN_TOSS_ADDRESS,
+        entrypoint: "flip",
+        calldata: [
+          tokenId.toString(), // token_id: u64
+          choice.toString(),  // choice: u8
+        ],
+      },
+    ],
+    KATANA_TX_OPTS,
+  );
 }
 
 /**
  * Step 4: Settle the bet — reads game result, pays out if won.
  */
 export async function settleBet(account: AccountInterface, tokenId: number) {
-  return account.execute({
-    contractAddress: CASINO_ADDRESS,
-    entrypoint: "settle",
-    calldata: [tokenId.toString()], // token_id: u64
-  });
+  return account.execute(
+    {
+      contractAddress: CASINO_ADDRESS,
+      entrypoint: "settle",
+      calldata: [tokenId.toString()], // token_id: u64
+    },
+    KATANA_TX_OPTS,
+  );
 }
 
 /**

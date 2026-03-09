@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useAccount, useConnect, useDisconnect } from "@starknet-react/core";
+import { BURNER_ADDRESS } from "../../dojo/config";
 
 const GameCanvas = dynamic(() => import("../../game/GameCanvas"), {
   ssr: false,
@@ -14,16 +14,12 @@ const GameCanvas = dynamic(() => import("../../game/GameCanvas"), {
 });
 
 export default function GamePage() {
-  const { address, status } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
-  const isConnected = status === "connected" && !!address;
-  const shortAddr = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "";
+  const shortAddr = `${BURNER_ADDRESS.slice(0, 6)}...${BURNER_ADDRESS.slice(-4)}`;
 
   return (
     <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#0a0a0a" }}>
       <GameCanvas />
-      {/* Wallet connection overlay */}
+      {/* Burner account indicator */}
       <div
         style={{
           position: "fixed",
@@ -35,57 +31,29 @@ export default function GamePage() {
           gap: 8,
         }}
       >
-        {isConnected ? (
-          <>
-            <span
-              style={{
-                fontFamily: "'Courier New', monospace",
-                fontSize: 13,
-                color: "#4caf50",
-                border: "1px solid #4caf5044",
-                background: "#4caf5011",
-                padding: "6px 12px",
-                borderRadius: 8,
-              }}
-            >
-              {shortAddr}
-            </span>
-            <button
-              onClick={() => disconnect()}
-              style={{
-                fontFamily: "'Courier New', monospace",
-                fontSize: 13,
-                color: "#e94560",
-                border: "1px solid #e9456044",
-                background: "transparent",
-                padding: "6px 10px",
-                borderRadius: 8,
-                cursor: "pointer",
-              }}
-            >
-              disconnect
-            </button>
-          </>
-        ) : (
-          <button
-            onClick={() => connectors[0] && connect({ connector: connectors[0] })}
-            style={{
-              fontFamily: "'Courier New', monospace",
-              fontSize: 14,
-              fontWeight: "bold",
-              color: "#8ecae6",
-              border: "2px solid #8ecae6",
-              background: "#8ecae622",
-              padding: "8px 16px",
-              borderRadius: 8,
-              cursor: "pointer",
-              letterSpacing: "0.1em",
-              boxShadow: "0 0 15px rgba(142,202,230,0.2)",
-            }}
-          >
-            CONNECT WALLET
-          </button>
-        )}
+        <span
+          style={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: 13,
+            color: "#4caf50",
+            border: "1px solid #4caf5044",
+            background: "#4caf5011",
+            padding: "6px 12px",
+            borderRadius: 8,
+          }}
+        >
+          {shortAddr}
+        </span>
+        <span
+          style={{
+            fontFamily: "'Courier New', monospace",
+            fontSize: 10,
+            color: "#fdd835",
+            opacity: 0.6,
+          }}
+        >
+          BURNER
+        </span>
       </div>
     </div>
   );

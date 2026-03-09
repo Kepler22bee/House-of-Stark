@@ -125,9 +125,9 @@ export default function GameCanvas() {
   const dialogueRef = useRef<DialogueState>({ active: false, npc: null, line: 0 });
   const tileDialogueRef = useRef<TileDialogueState>({ active: false, lines: [], line: 0 });
   const gameScreenRef = useRef<GameScreenState>({ active: false, type: null });
-  const introRef = useRef<IntroState>({ active: true, line: 0, dismissed: false });
+  const introRef = useRef<IntroState>({ active: false, line: 0, dismissed: true });
   const lastTimeRef = useRef<number>(0);
-  const sceneRef = useRef<Scene>("overworld");
+  const sceneRef = useRef<Scene>("casino");
   const casinoIntroRef = useRef<IntroState>({ active: false, line: 0, dismissed: false });
   const agentMenuRef = useRef<AgentMenuState>({ active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 });
   const overworldPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -207,6 +207,16 @@ export default function GameCanvas() {
         if (npcName === YUKI_NAME && sceneRef.current === "overworld") {
           switchToCasino();
         }
+        // After Coin Toss Dealer's dialogue ends, open coin toss game
+        if (npcName === "Coin Toss Dealer" && sceneRef.current === "casino") {
+          gameScreenRef.current = { active: true, type: "coin_toss" };
+          setActiveGameScreen("coin_toss");
+        }
+        // After Price Dealer's dialogue ends, open price prediction game
+        if (npcName === "Price Dealer" && sceneRef.current === "casino") {
+          gameScreenRef.current = { active: true, type: "price_prediction" };
+          setActiveGameScreen("price_prediction");
+        }
         return;
       }
       return;
@@ -277,16 +287,6 @@ export default function GameCanvas() {
         return;
       }
 
-      // Casino table — open game screen
-      if (tile === TileType.CASINO_TABLE && sceneRef.current === "casino") {
-        // Left tables (cols 3-4) = coin toss, right tables (cols 25-26) = price prediction
-        const isLeftSide = tx < 15;
-        const gameType = isLeftSide ? "coin_toss" as const : "price_prediction" as const;
-        gameScreenRef.current = { active: true, type: gameType };
-        setActiveGameScreen(gameType);
-        return;
-      }
-
       if (info?.interactable && interactions[tile]) {
         tileDialogueRef.current = { active: true, lines: interactions[tile], line: 0 };
       }
@@ -340,6 +340,14 @@ export default function GameCanvas() {
           dialogueRef.current = { active: false, npc: null, line: 0 };
           if (npcName === YUKI_NAME && sceneRef.current === "overworld") {
             switchToCasino();
+          }
+          if (npcName === "Coin Toss Dealer" && sceneRef.current === "casino") {
+            gameScreenRef.current = { active: true, type: "coin_toss" };
+            setActiveGameScreen("coin_toss");
+          }
+          if (npcName === "Price Dealer" && sceneRef.current === "casino") {
+            gameScreenRef.current = { active: true, type: "price_prediction" };
+            setActiveGameScreen("price_prediction");
           }
           return;
         }

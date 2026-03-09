@@ -1,7 +1,6 @@
 "use client";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useAccount, useConnect, useDisconnect, useProvider } from "@starknet-react/core";
-import { RpcProvider } from "starknet";
+import { Account, RpcProvider } from "starknet";
 import {
   approveBet,
   placeBet,
@@ -11,6 +10,7 @@ import {
   readGameResult,
   GameResult,
 } from "../../dojo/contracts";
+import { RPC_URL, BURNER_ADDRESS, BURNER_PRIVATE_KEY } from "../../dojo/config";
 
 interface CoinTossGameProps {
   onClose: () => void;
@@ -88,11 +88,17 @@ const KEYFRAMES = `
 }
 `;
 
+// Burner account for local katana dev
+const rpcProvider = new RpcProvider({ nodeUrl: RPC_URL });
+const burnerAccount = new Account({
+  provider: rpcProvider,
+  address: BURNER_ADDRESS,
+  signer: BURNER_PRIVATE_KEY,
+});
+
 export default function CoinTossGame({ onClose }: CoinTossGameProps) {
-  const { account, address, status } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
-  const { provider } = useProvider();
+  const account = burnerAccount;
+  const address = BURNER_ADDRESS;
 
   const [choice, setChoice] = useState<number | null>(null);
   const [step, setStep] = useState<Step>({ id: "idle" });
@@ -122,7 +128,7 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
       const approveTx = await approveBet(account);
 
       // Wait for approve to land
-      await (provider as RpcProvider).waitForTransaction(approveTx.transaction_hash, {
+      await (rpcProvider).waitForTransaction(approveTx.transaction_hash, {
         retryInterval: 1000,
       });
 
@@ -133,41 +139,40 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
       // Step 3: Extract token_id from receipt
       setStep({ id: "waiting_token" });
       const tokenId = await getTokenIdFromReceipt(
-        provider as RpcProvider,
+        rpcProvider,
         betTx.transaction_hash
       );
 
       // Step 4: VRF request + flip (multicall)
       setStep({ id: "flipping" });
       const flipTx = await flipCoin(account, tokenId, choice);
-      await (provider as RpcProvider).waitForTransaction(flipTx.transaction_hash, {
+      await (rpcProvider).waitForTransaction(flipTx.transaction_hash, {
         retryInterval: 1000,
       });
 
       // Step 5: Settle
       setStep({ id: "settling" });
       const settleTx = await settleBet(account, tokenId);
-      await (provider as RpcProvider).waitForTransaction(settleTx.transaction_hash, {
+      await (rpcProvider).waitForTransaction(settleTx.transaction_hash, {
         retryInterval: 1000,
       });
 
       // Step 6: Read result
-      const result = await readGameResult(provider as RpcProvider, tokenId);
+      const result = await readGameResult(rpcProvider, tokenId);
       setStep({ id: "done", result });
     } catch (err: any) {
       const msg = err?.message ?? "Transaction failed";
       setStep({ id: "error", message: msg.slice(0, 160) });
     }
-  }, [account, choice, provider]);
+  }, [account, choice]);
 
   const reset = useCallback(() => {
     setStep({ id: "idle" });
     setChoice(null);
   }, []);
 
-  const isConnected = status === "connected" && !!account;
   const isProcessing = STEPS_ORDER.includes(step.id);
-  const shortAddr = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "";
+  const shortAddr = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
   return (
     <div
@@ -282,31 +287,7 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
           </p>
         </div>
 
-        {!isConnected ? (
-          /* ── Connect wallet ────────────────────────────── */
-          <div style={{ textAlign: "center", position: "relative", zIndex: 1 }}>
-            {/* Static coin display */}
-            <CoinDisplay side={null} state="idle" />
-            <p style={{ color: "#555", fontSize: 12, margin: "16px 0 20px" }}>
-              Connect your wallet to play
-            </p>
-            <button
-              onClick={() => connectors[0] && connect({ connector: connectors[0] })}
-              style={primaryBtnStyle(true)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(253,216,53,0.2)";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(253,216,53,0.08)";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              CONNECT WALLET
-            </button>
-          </div>
-        ) : (
-          <div style={{ position: "relative", zIndex: 1 }}>
+        <div style={{ position: "relative", zIndex: 1 }}>
             {/* Address bar */}
             <div
               style={{
@@ -327,24 +308,7 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
               >
                 {shortAddr}
               </span>
-              {" "}
-              <button
-                onClick={() => disconnect()}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#e94560",
-                  cursor: "pointer",
-                  fontSize: 10,
-                  fontFamily: "inherit",
-                  opacity: 0.7,
-                  transition: "opacity 0.2s",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = "0.7"; }}
-              >
-                disconnect
-              </button>
+              <span style={{ color: "#4caf50", fontSize: 9, marginLeft: 8 }}>BURNER</span>
             </div>
 
             {/* ── IDLE: Choose side + flip ─────────────── */}
@@ -562,7 +526,6 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
               </div>
             )}
           </div>
-        )}
 
         {/* Footer */}
         <p

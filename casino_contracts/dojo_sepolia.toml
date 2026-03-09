@@ -1,0 +1,16 @@
+[world]
+description = "Cairo Casino - EGS gambling platform"
+name = "cairo_casino"
+seed = "cairo_casino"
+
+[namespace]
+default = "cairo_casino"
+
+[env]
+rpc_url = "https://api.cartridge.gg/x/starknet/sepolia"
+account_address = "0x07b969fcbc4f02f0058651afb28eefa5b09bb6fa0498f1de5463d1e0af8f633d"
+private_key = "0x38a04a62fa10e0fd4797843e29d2c74466ca2c3b4c9d82bb85233640db3a3b6"
+
+# coin_toss and event_relayer need write access to the Dojo world
+[writers]
+"cairo_casino" = ["cairo_casino-coin_toss", "cairo_casino-event_relayer", "cairo_casino-casino"]

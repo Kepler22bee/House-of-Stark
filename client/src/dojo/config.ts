@@ -19,3 +19,11 @@ export const CASINO_ADDRESS =
 export const FEE_TOKEN_ADDRESS =
   process.env.NEXT_PUBLIC_FEE_TOKEN_ADDRESS ??
   "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
+
+// Katana predeployed burner account
+export const BURNER_ADDRESS =
+  process.env.NEXT_PUBLIC_BURNER_ADDRESS ??
+  "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec";
+export const BURNER_PRIVATE_KEY =
+  process.env.NEXT_PUBLIC_BURNER_PRIVATE_KEY ??
+  "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912";
