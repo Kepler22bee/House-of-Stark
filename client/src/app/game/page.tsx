@@ -19,7 +19,7 @@ export default function GamePage() {
   return (
     <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#0a0a0a" }}>
       <GameCanvas />
-      {/* Wallet + Coins */}
+      {/* Wallet */}
       <div
         style={{
           position: "fixed",
@@ -27,45 +27,19 @@ export default function GamePage() {
           left: "50%",
           transform: "translateX(-50%)",
           zIndex: 50,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          background: "rgba(0,0,0,0.85)",
+          border: "2px solid #fdd835",
+          borderRadius: 12,
+          padding: "8px 24px",
+          fontFamily: "'Courier New', monospace",
+          fontSize: 18,
+          fontWeight: "bold",
+          color: "#fdd835",
+          letterSpacing: 1,
+          boxShadow: "0 0 20px rgba(253,216,53,0.3)",
         }}
       >
-        {/* Address */}
-        <div
-          style={{
-            background: "rgba(0,0,0,0.85)",
-            border: "2px solid #fdd835",
-            borderRadius: "12px 12px 0 0",
-            padding: "8px 24px",
-            fontFamily: "'Courier New', monospace",
-            fontSize: 18,
-            fontWeight: "bold",
-            color: "#fdd835",
-            letterSpacing: 1,
-          }}
-        >
-          {shortAddr}
-        </div>
-        {/* Coins - down arrow shape */}
-        <div
-          style={{
-            background: "rgba(0,0,0,0.85)",
-            border: "2px solid #fdd835",
-            borderTop: "none",
-            borderRadius: "0 0 12px 12px",
-            padding: "6px 20px",
-            fontFamily: "'Courier New', monospace",
-            fontSize: 16,
-            fontWeight: "bold",
-            color: "#fdd835",
-            clipPath: "polygon(0 0, 100% 0, 85% 100%, 15% 100%)",
-            paddingBottom: 14,
-          }}
-        >
-          💰 3500 COINS
-        </div>
+        {shortAddr}
       </div>
     </div>
   );
