@@ -100,6 +100,7 @@ export function renderGame(
   }
   if (scene === "overworld") {
     drawClankerHouseSign(ctx);
+    drawClankerWarehouseSign(ctx);
   }
 
   // Draw scene label inside casino
@@ -302,9 +303,50 @@ function drawClankerHouseSign(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = `rgba(136, 204, 255, ${glow})`;
   ctx.fillText(text, cx, cy + 1);
 
-  // Robot icon
+  // Gear icon
   ctx.font = "14px Arial";
-  ctx.fillText("🤖", cx, cy - 18);
+  ctx.fillText("⚙️", cx, cy - 18);
+
+  ctx.restore();
+}
+
+// Clanker Warehouse sign — to the left of the casino
+function drawClankerWarehouseSign(ctx: CanvasRenderingContext2D) {
+  // Position to the left of casino (casino is at x:37, so warehouse around x:31-35)
+  const signX = 31 * TILE_SIZE;
+  const signY = 27 * TILE_SIZE;
+  const signW = 5 * TILE_SIZE;
+
+  const glow = Math.sin(Date.now() / 500) * 0.2 + 0.8;
+  ctx.save();
+  ctx.font = "bold 11px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  // Background pill
+  const text = "CLANKER WAREHOUSE";
+  const tw = ctx.measureText(text).width + 16;
+  const cx = signX + signW / 2;
+  const cy = signY - 4;
+  ctx.fillStyle = `rgba(0, 0, 0, ${0.6 * glow})`;
+  ctx.beginPath();
+  ctx.roundRect(cx - tw / 2, cy - 9, tw, 18, 6);
+  ctx.fill();
+
+  // Border — red/orange for warehouse vibe
+  ctx.strokeStyle = `rgba(255, 68, 68, ${glow})`;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(cx - tw / 2, cy - 9, tw, 18, 6);
+  ctx.stroke();
+
+  // Text
+  ctx.fillStyle = `rgba(255, 100, 100, ${glow})`;
+  ctx.fillText(text, cx, cy + 1);
+
+  // Gear icon
+  ctx.font = "14px Arial";
+  ctx.fillText("⚙️", cx, cy - 18);
 
   ctx.restore();
 }
@@ -314,8 +356,8 @@ function drawTablePointers(ctx: CanvasRenderingContext2D) {
   const glow = Math.sin(Date.now() / 400) * 0.15 + 0.85;
 
   const tables = [
-    { label: "🪙 COIN TOSS", color: "#fdd835", x: 3.5, y: 5.2 },
-    { label: "📈 PRICE PREDICTION", color: "#00d2ff", x: 25.5, y: 5.2 },
+    { label: "🪙 COIN TOSS", color: "#fdd835", x: 3.5, y: 7 },
+    { label: "📈 PRICE PREDICTION", color: "#00d2ff", x: 25.5, y: 7 },
     { label: "👑 VIP TABLES", color: "#e91e63", x: 15, y: 9.5 },
   ];
 

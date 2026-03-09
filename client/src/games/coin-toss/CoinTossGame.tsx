@@ -14,6 +14,8 @@ import { RPC_URL, BURNER_ADDRESS, BURNER_PRIVATE_KEY } from "../../dojo/config";
 
 interface CoinTossGameProps {
   onClose: () => void;
+  initialChoice?: number | null;
+  autoFlip?: boolean;
 }
 
 type Step =
@@ -96,11 +98,12 @@ const burnerAccount = new Account({
   signer: BURNER_PRIVATE_KEY,
 });
 
-export default function CoinTossGame({ onClose }: CoinTossGameProps) {
+export default function CoinTossGame({ onClose, initialChoice, autoFlip }: CoinTossGameProps) {
   const account = burnerAccount;
   const address = BURNER_ADDRESS;
 
-  const [choice, setChoice] = useState<number | null>(null);
+  const [choice, setChoice] = useState<number | null>(initialChoice ?? null);
+  const autoFlipDone = useRef(false);
   const [step, setStep] = useState<Step>({ id: "idle" });
   const [coinHover, setCoinHover] = useState<number | null>(null);
   const [aiAdvice, setAiAdvice] = useState<string | null>(null);
@@ -214,6 +217,14 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
     setChoice(null);
     setAiAdvice(null);
   }, []);
+
+  // Auto-flip when Clanker triggers the bet
+  useEffect(() => {
+    if (autoFlip && initialChoice !== null && initialChoice !== undefined && !autoFlipDone.current && step.id === "idle") {
+      autoFlipDone.current = true;
+      handleFlip();
+    }
+  }, [autoFlip, initialChoice, step.id, handleFlip]);
 
   const isProcessing = STEPS_ORDER.includes(step.id);
   const shortAddr = `${address.slice(0, 6)}...${address.slice(-4)}`;

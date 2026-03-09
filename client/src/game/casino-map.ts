@@ -107,8 +107,8 @@ export const casinoMap: number[][] = [
 // Casino interior NPCs — positions for 30x30 tiled casino map
 export const casinoNpcs: NPC[] = [
   {
-    x: 5 * TILE_SIZE + 8,
-    y: 4 * TILE_SIZE + 8,
+    x: 2 * TILE_SIZE + 8,
+    y: 8 * TILE_SIZE + 8,
     name: "Coin Toss Dealer",
     dialogue: [
       "Welcome to the Coin Toss table!",
@@ -121,8 +121,8 @@ export const casinoNpcs: NPC[] = [
     icon: "🪙",
   },
   {
-    x: 22 * TILE_SIZE + 8,
-    y: 4 * TILE_SIZE + 8,
+    x: 27 * TILE_SIZE + 8,
+    y: 8 * TILE_SIZE + 8,
     name: "Price Dealer",
     dialogue: [
       "This is the Price Prediction table.",

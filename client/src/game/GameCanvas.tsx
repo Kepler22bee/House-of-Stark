@@ -117,7 +117,7 @@ export default function GameCanvas() {
   const gameScreenRef = useRef<GameScreenState>({ active: false, type: null });
   const introRef = useRef<IntroState>({ active: false, line: 0, dismissed: true });
   const lastTimeRef = useRef<number>(0);
-  const sceneRef = useRef<Scene>("casino");
+  const sceneRef = useRef<Scene>("overworld");
   const casinoIntroRef = useRef<IntroState>({ active: false, line: 0, dismissed: false });
   const agentMenuRef = useRef<AgentMenuState>({ active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 });
   const overworldPosRef = useRef<{ x: number; y: number }>({ x: 41 * TILE_SIZE, y: 34 * TILE_SIZE });
@@ -129,6 +129,7 @@ export default function GameCanvas() {
   const [aiChatMessages, setAiChatMessages] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
   const [aiChatInput, setAiChatInput] = useState("");
   const [aiChatLoading, setAiChatLoading] = useState(false);
+  const [clankerBet, setClankerBet] = useState<{ choice: number; autoFlip: boolean } | null>(null);
   const aiChatInputRef = useRef<HTMLInputElement>(null);
 
   const getActiveMap = useCallback((): { map: number[][]; width: number; height: number } => {
@@ -250,6 +251,26 @@ export default function GameCanvas() {
       );
       if (dist < 60) {
         switchToCasino();
+        return;
+      }
+
+      // Clanker Warehouse — left of casino (tiles 31-35, row 33-34 door area)
+      const whX = 33 * TILE_SIZE;
+      const whY = 33 * TILE_SIZE;
+      const whDist = Math.sqrt(
+        Math.pow(player.x - whX, 2) + Math.pow(player.y - whY, 2)
+      );
+      if (whDist < 60) {
+        tileDialogueRef.current = {
+          active: true,
+          lines: [
+            "Clanker Warehouse — T-800 Upgrade Bay",
+            "New upgrades to T-800 coming SOON!",
+            "Neural Boost, Memory Bank, Turbo Core...",
+            "Check back later, human.",
+          ],
+          line: 0,
+        };
         return;
       }
     }
@@ -546,6 +567,18 @@ export default function GameCanvas() {
   const closeGameScreen = useCallback(() => {
     gameScreenRef.current = { active: false, type: null };
     setActiveGameScreen(null);
+    setClankerBet(null);
+  }, []);
+
+  // Detect bet commands from user message
+  const parseBetCommand = useCallback((msg: string): { choice: number } | null => {
+    const lower = msg.toLowerCase().trim();
+    // Match patterns like "bet heads", "flip tails", "go heads", "pick tails", "heads", "tails", "bet on heads"
+    const headsPatterns = /\b(bet|flip|go|pick|play|call|choose)\b.*\bheads?\b|\bheads?\b.*\b(bet|flip|go|pick|play|call|choose)\b|^heads?$/i;
+    const tailsPatterns = /\b(bet|flip|go|pick|play|call|choose)\b.*\btails?\b|\btails?\b.*\b(bet|flip|go|pick|play|call|choose)\b|^tails?$/i;
+    if (headsPatterns.test(lower)) return { choice: 0 };
+    if (tailsPatterns.test(lower)) return { choice: 1 };
+    return null;
   }, []);
 
   const sendAiChat = useCallback(async () => {
@@ -554,6 +587,21 @@ export default function GameCanvas() {
     setAiChatInput("");
     setAiChatMessages(prev => [...prev, { role: "user", text: msg }]);
     setAiChatLoading(true);
+
+    // Check if this is a direct bet command
+    const betCmd = parseBetCommand(msg);
+    if (betCmd && sceneRef.current === "casino") {
+      const sideName = betCmd.choice === 0 ? "HEADS" : "TAILS";
+      setAiChatMessages(prev => [...prev, { role: "assistant", text: `*bzzt* Locking in ${sideName}! Let's flip this coin, boss. *whirr*` }]);
+      setAiChatLoading(false);
+      // Close chat and open coin toss with auto-flip
+      setAiChatOpen(false);
+      setClankerBet({ choice: betCmd.choice, autoFlip: true });
+      gameScreenRef.current = { active: true, type: "coin_toss" };
+      setActiveGameScreen("coin_toss");
+      return;
+    }
+
     try {
       const scene = sceneRef.current;
       const systemPrompt = `You are Clanker, a small rusty robot companion in a blockchain casino game called "House of Stark" (built on Starknet/Dojo). You follow the player everywhere inside Fortune Falls — a neon-lit casino town.
@@ -565,11 +613,13 @@ CONTEXT:
 - The casino has a VIP upper floor guarded by Bouncer Kaz — need 5000 points to enter.
 - The game runs on Starknet with ERC20 bets and ERC721 game tokens via the EGS (Embeddable Game Standard).
 - You were built in the Clanker Workshop. You're proud of it.
+- IMPORTANT: You can place bets directly! If the player wants you to bet, tell them to type "bet heads" or "bet tails" and you'll handle it.
 
 PERSONALITY:
 - You speak in short, punchy sentences. Sometimes robotic ("*beep*", "*whirr*", "*bzzt*"), always funny.
 - You're a degenerate gambler at heart — you love risk, you love chaos, you live for the flip.
 - Give actual betting advice when asked (pick heads or tails, suggest strategies, comment on streaks).
+- If the player asks you to bet or play for them, remind them they can say "bet heads" or "bet tails" and you'll flip the coin directly.
 - When the player asks something vague, off-topic, or nonsensical that you can't answer, reply with something like: "idk bruh... you're supposed to be the higher intelligence species here" or "bro you literally have a whole prefrontal cortex and you're asking ME?" or "my neural net has 4 billion params and even I can't parse that" — be creative, roast them lovingly.
 - Never break character. You ARE Clanker.
 
@@ -596,7 +646,7 @@ Keep responses under 60 words.`;
     } finally {
       setAiChatLoading(false);
     }
-  }, [aiChatInput, aiChatLoading, aiChatMessages]);
+  }, [aiChatInput, aiChatLoading, aiChatMessages, parseBetCommand]);
 
   return (
     <>
@@ -615,7 +665,7 @@ Keep responses under 60 words.`;
         }}
       />
       {activeGameScreen === "coin_toss" && (
-        <CoinTossGame onClose={closeGameScreen} />
+        <CoinTossGame onClose={closeGameScreen} initialChoice={clankerBet?.choice ?? null} autoFlip={clankerBet?.autoFlip ?? false} />
       )}
       {activeGameScreen === "price_prediction" && (
         <PricePredictionGame onClose={closeGameScreen} />
