@@ -1,6 +1,6 @@
-import { TILE_SIZE, drawTile } from "./tiles";
+import { TILE_SIZE, TILE_INFO, TileType, drawTile } from "./tiles";
 import { gameMap, MAP_WIDTH, MAP_HEIGHT, npcs, NPC } from "./map";
-import { Player, drawPlayer, MapData } from "./player";
+import { Player, drawPlayer, MapData, getFacingTile } from "./player";
 import { AgentMenuState, AgentData, MOCK_AGENTS, SHOP_POWERS, playerMoney } from "./GameCanvas";
 
 export interface SceneData {
@@ -390,6 +390,60 @@ function drawUI(
     ctx.fillStyle = "#8ecae6";
     ctx.textAlign = "left";
     ctx.fillText("WASD: Move  E: Interact", 18, 28);
+  }
+
+  // Proximity prompt for interactable tiles
+  if (!introOverlay && !activeDialogue && !activeTileDialogue) {
+    const facing = getFacingTile(player);
+    if (facing.ty >= 0 && facing.ty < activeH && facing.tx >= 0 && facing.tx < activeW) {
+      const facingTile = activeMap[facing.ty][facing.tx];
+      const info = TILE_INFO[facingTile as TileType];
+      if (info?.interactable && info.label) {
+        const promptText = `[E] ${info.label}`;
+        ctx.font = "bold 13px 'Courier New', monospace";
+        const tw = ctx.measureText(promptText).width + 20;
+        const px = (canvasW - tw) / 2;
+        const py = canvasH - 80;
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.beginPath();
+        ctx.roundRect(px, py, tw, 30, 6);
+        ctx.fill();
+        ctx.strokeStyle = "#fdd835";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(px, py, tw, 30, 6);
+        ctx.stroke();
+        ctx.fillStyle = "#fdd835";
+        ctx.textAlign = "center";
+        ctx.fillText(promptText, canvasW / 2, py + 20);
+      }
+    }
+    // NPC proximity prompt
+    for (const npc of activeNpcs) {
+      const dist = Math.sqrt(
+        Math.pow(player.x - npc.x, 2) + Math.pow(player.y - npc.y, 2)
+      );
+      if (dist < 60) {
+        const promptText = `[E] Talk to ${npc.name}`;
+        ctx.font = "bold 13px 'Courier New', monospace";
+        const tw = ctx.measureText(promptText).width + 20;
+        const px = (canvasW - tw) / 2;
+        const py = canvasH - 80;
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.beginPath();
+        ctx.roundRect(px, py, tw, 30, 6);
+        ctx.fill();
+        ctx.strokeStyle = "#fdd835";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(px, py, tw, 30, 6);
+        ctx.stroke();
+        ctx.fillStyle = "#fdd835";
+        ctx.textAlign = "center";
+        ctx.fillText(promptText, canvasW / 2, py + 20);
+        break;
+      }
+    }
   }
 
   // Intro overlay

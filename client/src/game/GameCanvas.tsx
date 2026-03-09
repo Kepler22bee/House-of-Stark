@@ -237,6 +237,12 @@ export default function GameCanvas() {
       const tile = map[ty][tx];
       const info = TILE_INFO[tile as TileType];
 
+      // Casino door — enter casino from overworld
+      if (tile === TileType.CASINO_DOOR && sceneRef.current === "overworld") {
+        switchToCasino();
+        return;
+      }
+
       // Casino exit door — go back to overworld
       if (tile === TileType.CASINO_EXIT && sceneRef.current === "casino") {
         switchToOverworld();
