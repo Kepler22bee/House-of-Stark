@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pixel Quest - Adventure RPG",
+  title: "House of Cards",
   description: "A top-down pixel art RPG adventure",
 };
 

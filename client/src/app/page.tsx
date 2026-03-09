@@ -80,7 +80,7 @@ export default function Home() {
             letterSpacing: "0.15em",
           }}
         >
-          PIXEL QUEST
+          House of Cards
         </h1>
         <p
           className="text-lg md:text-xl tracking-widest uppercase"

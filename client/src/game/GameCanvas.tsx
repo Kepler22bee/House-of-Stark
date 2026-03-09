@@ -9,6 +9,8 @@ import { loadAllSprites } from "./sprites";
 import { loadTiledMap, CASINO_BUILDING } from "./tiledMap";
 import { loadTiledCasino, casinoTiledReady, CASINO_MAP_W, CASINO_MAP_H, CASINO_EXIT, isInCasinoExit } from "./tiledCasino";
 import { createCompanion, updateCompanion, loadCompanionSprite, Companion } from "./companion";
+import { setSceneMusic, resumeMusicIfNeeded } from "./music";
+import { playSfx, setRunning } from "./sfx";
 
 interface DialogueState {
   active: boolean;
@@ -164,6 +166,7 @@ export default function GameCanvas() {
     companionRef.current.x = playerRef.current.x - TILE_SIZE;
     companionRef.current.y = playerRef.current.y;
     casinoIntroRef.current = { active: true, line: 0, dismissed: false };
+    setSceneMusic("casino");
   }, []);
 
   const switchToOverworld = useCallback(() => {
@@ -174,6 +177,7 @@ export default function GameCanvas() {
     sceneRef.current = "overworld";
     companionRef.current.x = playerRef.current.x - TILE_SIZE;
     companionRef.current.y = playerRef.current.y;
+    setSceneMusic("overworld");
   }, []);
 
   const tryInteract = useCallback(() => {
@@ -255,6 +259,7 @@ export default function GameCanvas() {
       );
       if (dist < 60) {
         dialogueRef.current = { active: true, npc, line: 0 };
+        playSfx("npcGreet");
         return;
       }
     }
@@ -302,6 +307,9 @@ export default function GameCanvas() {
     if (!ctx) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      resumeMusicIfNeeded();
+      // Start overworld music on first keypress (unlocks autoplay)
+      setSceneMusic(sceneRef.current);
       keysRef.current.add(e.key);
       if (e.key === "b" || e.key === "B") {
         if (agentMenuRef.current.active) {
@@ -424,6 +432,7 @@ export default function GameCanvas() {
       if (!blocked) {
         updatePlayer(playerRef.current, keysRef.current, dt, mapData);
       }
+      setRunning(!blocked && playerRef.current.moving);
       updateCompanion(companionRef.current, playerRef.current, dt);
 
       ctx.imageSmoothingEnabled = false;
