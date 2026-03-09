@@ -1,10 +1,13 @@
 import { TILE_SIZE, TILE_INFO, TileType } from "./tiles";
 import { gameMap, MAP_WIDTH, MAP_HEIGHT } from "./map";
+import { isCollision as tiledIsCollision, tiledMapReady, TILED_MAP_WIDTH, TILED_MAP_HEIGHT } from "./tiledMap";
+import { casinoIsCollision, casinoTiledReady, CASINO_MAP_W, CASINO_MAP_H } from "./tiledCasino";
 
 export interface MapData {
   map: number[][];
   width: number;
   height: number;
+  scene?: "overworld" | "casino";
 }
 
 export type Direction = "down" | "up" | "left" | "right";
@@ -37,9 +40,13 @@ export function updatePlayer(
   dt: number,
   mapData?: MapData,
 ): void {
+  const scene = mapData?.scene ?? "overworld";
+  const useTiledOverworld = scene === "overworld" && tiledMapReady();
+  const useTiledCasino = scene === "casino" && casinoTiledReady();
+  const useTiled = useTiledOverworld || useTiledCasino;
   const activeMap = mapData?.map ?? gameMap;
-  const activeW = mapData?.width ?? MAP_WIDTH;
-  const activeH = mapData?.height ?? MAP_HEIGHT;
+  const activeW = useTiledOverworld ? TILED_MAP_WIDTH : useTiledCasino ? CASINO_MAP_W : (mapData?.width ?? MAP_WIDTH);
+  const activeH = useTiledOverworld ? TILED_MAP_HEIGHT : useTiledCasino ? CASINO_MAP_H : (mapData?.height ?? MAP_HEIGHT);
 
   let dx = 0;
   let dy = 0;
@@ -76,12 +83,12 @@ export function updatePlayer(
     // Check X movement
     const testXLeft = player.x + dx * player.speed + hitboxPadding;
     const testXRight = player.x + dx * player.speed + TILE_SIZE - hitboxPadding;
-    const canMoveX = !isBlocked(testXLeft, player.y + hitboxPadding, testXRight, player.y + TILE_SIZE - hitboxPadding, activeMap, activeW, activeH);
+    const canMoveX = !isBlocked(testXLeft, player.y + hitboxPadding, testXRight, player.y + TILE_SIZE - hitboxPadding, activeMap, activeW, activeH, useTiled);
 
     // Check Y movement
     const testYTop = player.y + dy * player.speed + hitboxPadding;
     const testYBottom = player.y + dy * player.speed + TILE_SIZE - hitboxPadding;
-    const canMoveY = !isBlocked(player.x + hitboxPadding, testYTop, player.x + TILE_SIZE - hitboxPadding, testYBottom, activeMap, activeW, activeH);
+    const canMoveY = !isBlocked(player.x + hitboxPadding, testYTop, player.x + TILE_SIZE - hitboxPadding, testYBottom, activeMap, activeW, activeH, useTiled);
 
     if (canMoveX) player.x += dx * player.speed;
     if (canMoveY) player.y += dy * player.speed;
@@ -102,7 +109,19 @@ export function updatePlayer(
   }
 }
 
-function isBlocked(left: number, top: number, right: number, bottom: number, map: number[][], mapW: number, mapH: number): boolean {
+function isBlocked(left: number, top: number, right: number, bottom: number, map: number[][], mapW: number, mapH: number, useTiled: boolean = false): boolean {
+  if (useTiled) {
+    const corners = [
+      { x: Math.floor(left / TILE_SIZE), y: Math.floor(top / TILE_SIZE) },
+      { x: Math.floor(right / TILE_SIZE), y: Math.floor(top / TILE_SIZE) },
+      { x: Math.floor(left / TILE_SIZE), y: Math.floor(bottom / TILE_SIZE) },
+      { x: Math.floor(right / TILE_SIZE), y: Math.floor(bottom / TILE_SIZE) },
+    ];
+    // Use the correct collision function based on map size
+    const collisionFn = mapW === CASINO_MAP_W ? casinoIsCollision : tiledIsCollision;
+    return corners.some((c) => collisionFn(c.x, c.y));
+  }
+
   const tiles = [
     getTileAt(left, top, map, mapW, mapH),
     getTileAt(right, top, map, mapW, mapH),

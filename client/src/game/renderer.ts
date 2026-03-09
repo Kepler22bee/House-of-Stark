@@ -3,6 +3,9 @@ import { gameMap, MAP_WIDTH, MAP_HEIGHT, npcs, NPC } from "./map";
 import { Player, drawPlayer, MapData, getFacingTile } from "./player";
 import { Robot, drawRobot } from "./robot";
 import { AgentMenuState, AgentData, MOCK_AGENTS, SHOP_POWERS, playerMoney } from "./GameCanvas";
+import { drawTiledMap, tiledMapReady, getTiledMinimapColor, TILED_MAP_WIDTH, TILED_MAP_HEIGHT, CASINO_BUILDING } from "./tiledMap";
+import { drawTiledCasino, casinoTiledReady, CASINO_MAP_W, CASINO_MAP_H } from "./tiledCasino";
+import { Companion, drawCompanion } from "./companion";
 
 export interface SceneData {
   map: number[][];
@@ -18,8 +21,18 @@ export function getCamera(player: Player, canvasW: number, canvasH: number, mapW
 
   const mapPxW = mapWidth * TILE_SIZE;
   const mapPxH = mapHeight * TILE_SIZE;
-  camX = Math.max(0, Math.min(camX, mapPxW - canvasW));
-  camY = Math.max(0, Math.min(camY, mapPxH - canvasH));
+
+  // Center the map when it's smaller than the viewport
+  if (mapPxW <= canvasW) {
+    camX = -(canvasW - mapPxW) / 2;
+  } else {
+    camX = Math.max(0, Math.min(camX, mapPxW - canvasW));
+  }
+  if (mapPxH <= canvasH) {
+    camY = -(canvasH - mapPxH) / 2;
+  } else {
+    camY = Math.max(0, Math.min(camY, mapPxH - canvasH));
+  }
 
   return { camX, camY };
 }
@@ -41,12 +54,15 @@ export function renderGame(
   gameScreen?: "coin_toss" | "price_prediction" | null,
   agentMenu?: AgentMenuState | null,
   robot?: Robot | null,
+  companion?: Companion | null,
 ) {
   const activeMap = sceneData?.map ?? gameMap;
-  const activeW = sceneData?.mapWidth ?? MAP_WIDTH;
-  const activeH = sceneData?.mapHeight ?? MAP_HEIGHT;
   const activeNpcs = sceneData?.npcs ?? npcs;
   const scene = sceneData?.scene ?? "overworld";
+  const useTiledOverworld = scene === "overworld" && tiledMapReady();
+  const useTiledCasino = scene === "casino" && casinoTiledReady();
+  const activeW = useTiledOverworld ? TILED_MAP_WIDTH : useTiledCasino ? CASINO_MAP_W : (sceneData?.mapWidth ?? MAP_WIDTH);
+  const activeH = useTiledOverworld ? TILED_MAP_HEIGHT : useTiledCasino ? CASINO_MAP_H : (sceneData?.mapHeight ?? MAP_HEIGHT);
 
   const { camX, camY } = getCamera(player, canvasW, canvasH, activeW, activeH);
 
@@ -54,33 +70,35 @@ export function renderGame(
   ctx.fillStyle = scene === "casino" ? "#0a0812" : "#1a3a2a";
   ctx.fillRect(0, 0, canvasW, canvasH);
 
-  // For small maps (casino), center the map if it's smaller than the viewport
-  const mapPxW = activeW * TILE_SIZE;
-  const mapPxH = activeH * TILE_SIZE;
-  const offsetX = mapPxW < canvasW ? Math.round((canvasW - mapPxW) / 2) : 0;
-  const offsetY = mapPxH < canvasH ? Math.round((canvasH - mapPxH) / 2) : 0;
-
-  // Calculate visible tile range
-  const startTX = Math.max(0, Math.floor(camX / TILE_SIZE) - 1);
-  const startTY = Math.max(0, Math.floor(camY / TILE_SIZE) - 1);
-  const endTX = Math.min(activeW, Math.ceil((camX + canvasW) / TILE_SIZE) + 1);
-  const endTY = Math.min(activeH, Math.ceil((camY + canvasH) / TILE_SIZE) + 1);
-
   ctx.save();
-  ctx.translate(offsetX - Math.round(camX), offsetY - Math.round(camY));
+  ctx.translate(-Math.round(camX), -Math.round(camY));
 
-  // Draw tiles
-  for (let ty = startTY; ty < endTY; ty++) {
-    for (let tx = startTX; tx < endTX; tx++) {
-      if (activeMap[ty] && activeMap[ty][tx] !== undefined) {
-        drawTile(ctx, activeMap[ty][tx], tx, ty);
+  if (useTiledOverworld) {
+    drawTiledMap(ctx, camX, camY, canvasW, canvasH);
+    drawCasinoBuilding(ctx);
+  } else if (useTiledCasino) {
+    drawTiledCasino(ctx, camX, camY, canvasW, canvasH);
+  } else {
+    // Fallback: procedural tile-by-tile rendering (casino + pre-load)
+    const startTX = Math.max(0, Math.floor(camX / TILE_SIZE) - 1);
+    const startTY = Math.max(0, Math.floor(camY / TILE_SIZE) - 1);
+    const endTX = Math.min(activeW, Math.ceil((camX + canvasW) / TILE_SIZE) + 1);
+    const endTY = Math.min(activeH, Math.ceil((camY + canvasH) / TILE_SIZE) + 1);
+
+    for (let ty = startTY; ty < endTY; ty++) {
+      for (let tx = startTX; tx < endTX; tx++) {
+        if (activeMap[ty] && activeMap[ty][tx] !== undefined) {
+          drawTile(ctx, activeMap[ty][tx], tx, ty);
+        }
       }
     }
   }
 
   // Draw signs (only in overworld)
-  if (scene === "overworld") {
+  if (scene === "overworld" && !useTiledOverworld) {
     drawCasinoSign(ctx);
+  }
+  if (scene === "overworld") {
     drawClankerHouseSign(ctx);
   }
 
@@ -98,6 +116,11 @@ export function renderGame(
   // Draw robot companion (behind player)
   if (robot) {
     drawRobot(ctx, robot, player);
+  }
+
+  // Draw companion
+  if (companion) {
+    drawCompanion(ctx, companion);
   }
 
   // Draw player
@@ -334,6 +357,183 @@ function drawTablePointers(ctx: CanvasRenderingContext2D) {
   ctx.restore();
 }
 
+function drawCasinoBuilding(ctx: CanvasRenderingContext2D) {
+  const { x: bx, y: by, w: bw, h: bh, doorX, doorY } = CASINO_BUILDING;
+  const px = bx * TILE_SIZE;
+  const py = by * TILE_SIZE;
+  const pw = bw * TILE_SIZE;
+  const ph = bh * TILE_SIZE;
+
+  // ── Main building body ──
+  ctx.fillStyle = "#1e1530";
+  ctx.fillRect(px, py, pw, ph);
+
+  // Brick pattern
+  for (let row = 0; row < bh; row++) {
+    for (let col = 0; col < bw; col++) {
+      const offset = row % 2 === 0 ? 0 : TILE_SIZE / 2;
+      ctx.fillStyle = row < 2 ? "#251a38" : "#2a1f3d";
+      ctx.fillRect(px + col * TILE_SIZE + 1, py + row * TILE_SIZE + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+      // Mortar lines
+      ctx.fillStyle = "#181020";
+      ctx.fillRect(px + col * TILE_SIZE, py + row * TILE_SIZE, TILE_SIZE, 1);
+      ctx.fillRect(px + col * TILE_SIZE + offset, py + row * TILE_SIZE, 1, TILE_SIZE);
+    }
+  }
+
+  // ── Roof overhang ──
+  ctx.fillStyle = "#3d2856";
+  ctx.fillRect(px - 6, py - 8, pw + 12, 12);
+  ctx.fillStyle = "#4a3068";
+  ctx.fillRect(px - 4, py - 6, pw + 8, 4);
+  // Roof trim
+  ctx.fillStyle = "#DAA520";
+  ctx.fillRect(px - 6, py + 2, pw + 12, 3);
+
+  // ── Pillars on sides ──
+  const pillarW = TILE_SIZE * 0.6;
+  ctx.fillStyle = "#4a3068";
+  ctx.fillRect(px + 2, py, pillarW, ph);
+  ctx.fillRect(px + pw - pillarW - 2, py, pillarW, ph);
+  // Pillar highlights
+  ctx.fillStyle = "#5c3d80";
+  ctx.fillRect(px + 4, py, pillarW * 0.4, ph);
+  ctx.fillRect(px + pw - pillarW, py, pillarW * 0.4, ph);
+
+  // ── Windows (2 rows, evenly spaced) ──
+  const windowW = TILE_SIZE * 0.7;
+  const windowH = TILE_SIZE * 0.6;
+  const windowCols = [2, 3, 5, 6]; // tile offsets within building
+  for (const wc of windowCols) {
+    for (let wr = 0; wr < 2; wr++) {
+      const wx = px + wc * TILE_SIZE + (TILE_SIZE - windowW) / 2;
+      const wy = py + (wr + 1) * TILE_SIZE + (TILE_SIZE - windowH) / 2;
+      // Window frame
+      ctx.fillStyle = "#DAA520";
+      ctx.fillRect(wx - 2, wy - 2, windowW + 4, windowH + 4);
+      // Window glass — dark with slight glow
+      ctx.fillStyle = "#0a1628";
+      ctx.fillRect(wx, wy, windowW, windowH);
+      // Window reflection
+      ctx.fillStyle = "rgba(100, 180, 255, 0.15)";
+      ctx.fillRect(wx + 2, wy + 2, windowW * 0.4, windowH * 0.6);
+    }
+  }
+
+  // ── Neon sign band (row 3-4 of building) ──
+  const signY = py + 3 * TILE_SIZE;
+  const signH = TILE_SIZE * 1.2;
+  const signPad = TILE_SIZE * 1.2;
+  // Sign background
+  ctx.fillStyle = "#120a20";
+  ctx.fillRect(px + signPad, signY, pw - signPad * 2, signH);
+  // Sign border glow
+  const glow = Math.sin(Date.now() / 400) * 0.2 + 0.8;
+  ctx.strokeStyle = `rgba(233, 69, 96, ${glow * 0.6})`;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(px + signPad + 1, signY + 1, pw - signPad * 2 - 2, signH - 2);
+
+  // Sign text
+  ctx.save();
+  ctx.font = "bold 18px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const signCenterX = px + pw / 2;
+  const signCenterY = signY + signH / 2;
+  // Glow layers
+  ctx.fillStyle = `rgba(255, 107, 53, ${glow * 0.3})`;
+  ctx.fillText("GOLDEN DRAGON", signCenterX, signCenterY - 8);
+  ctx.fillStyle = `rgba(253, 216, 53, ${glow})`;
+  ctx.fillText("GOLDEN DRAGON", signCenterX, signCenterY - 8);
+  // Subtitle
+  ctx.font = "bold 10px 'Courier New', monospace";
+  ctx.fillStyle = `rgba(200, 230, 255, ${glow * 0.9})`;
+  ctx.fillText("C A S I N O", signCenterX, signCenterY + 10);
+  ctx.restore();
+
+  // ── Awning strip ──
+  const awningY = py + 5 * TILE_SIZE;
+  ctx.fillStyle = "#8B0000";
+  ctx.fillRect(px - 4, awningY, pw + 8, TILE_SIZE * 0.5);
+  // Awning stripes
+  for (let i = 0; i < bw * 2; i++) {
+    ctx.fillStyle = i % 2 === 0 ? "#a01010" : "#700808";
+    ctx.fillRect(px - 4 + i * (pw + 8) / (bw * 2), awningY, (pw + 8) / (bw * 2), TILE_SIZE * 0.5);
+  }
+  // Gold trim under awning
+  ctx.fillStyle = "#DAA520";
+  ctx.fillRect(px - 4, awningY + TILE_SIZE * 0.5, pw + 8, 3);
+
+  // ── Bottom facade (display windows + door) ──
+  const botY = py + 5 * TILE_SIZE + TILE_SIZE * 0.5 + 3;
+  const botH = ph - (botY - py);
+  ctx.fillStyle = "#2a1f3d";
+  ctx.fillRect(px, botY, pw, botH);
+
+  // Display windows on each side of door
+  const dispW = TILE_SIZE * 1.8;
+  const dispH = botH - 8;
+  // Left display
+  ctx.fillStyle = "#DAA520";
+  ctx.fillRect(px + TILE_SIZE * 1.5 - 2, botY + 4 - 2, dispW + 4, dispH + 4);
+  ctx.fillStyle = "#0a1628";
+  ctx.fillRect(px + TILE_SIZE * 1.5, botY + 4, dispW, dispH);
+  ctx.fillStyle = "rgba(233, 69, 96, 0.1)";
+  ctx.fillRect(px + TILE_SIZE * 1.5, botY + 4, dispW, dispH);
+  // Right display
+  ctx.fillStyle = "#DAA520";
+  ctx.fillRect(px + pw - TILE_SIZE * 1.5 - dispW - 2, botY + 4 - 2, dispW + 4, dispH + 4);
+  ctx.fillStyle = "#0a1628";
+  ctx.fillRect(px + pw - TILE_SIZE * 1.5 - dispW, botY + 4, dispW, dispH);
+  ctx.fillStyle = "rgba(233, 69, 96, 0.1)";
+  ctx.fillRect(px + pw - TILE_SIZE * 1.5 - dispW, botY + 4, dispW, dispH);
+
+  // ── Door ──
+  const doorPx = doorX * TILE_SIZE;
+  const doorPy = doorY * TILE_SIZE;
+  // Door frame gold
+  ctx.fillStyle = "#DAA520";
+  ctx.fillRect(doorPx + 4, doorPy - 4, TILE_SIZE - 8, TILE_SIZE + 4);
+  // Door body
+  ctx.fillStyle = "#5c2020";
+  ctx.fillRect(doorPx + 7, doorPy, TILE_SIZE - 14, TILE_SIZE - 2);
+  // Door handle
+  ctx.fillStyle = "#FFD700";
+  ctx.fillRect(doorPx + TILE_SIZE - 18, doorPy + TILE_SIZE / 2 - 2, 4, 4);
+  // "ENTER" text above door
+  ctx.save();
+  ctx.font = "bold 8px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#FFD700";
+  ctx.fillText("ENTER", doorPx + TILE_SIZE / 2, doorPy - 8);
+  ctx.restore();
+
+  // ── Street lamps on sides ──
+  const lampY = py + ph - TILE_SIZE;
+  for (const lx of [px - TILE_SIZE * 0.6, px + pw + TILE_SIZE * 0.1]) {
+    // Pole
+    ctx.fillStyle = "#444";
+    ctx.fillRect(lx + 8, lampY - TILE_SIZE, 4, TILE_SIZE * 1.5);
+    // Lamp head
+    ctx.fillStyle = "#FFD700";
+    ctx.fillRect(lx + 2, lampY - TILE_SIZE - 6, 16, 10);
+    // Light glow
+    ctx.fillStyle = `rgba(255, 200, 50, ${glow * 0.15})`;
+    ctx.beginPath();
+    ctx.arc(lx + 10, lampY - TILE_SIZE + 8, 20, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── Sidewalk in front ──
+  const swY = py + ph;
+  ctx.fillStyle = "#8a8078";
+  ctx.fillRect(px - TILE_SIZE, swY, pw + TILE_SIZE * 2, TILE_SIZE * 0.4);
+  ctx.fillStyle = "#9a9088";
+  for (let i = 0; i < bw + 2; i++) {
+    ctx.fillRect(px - TILE_SIZE + i * TILE_SIZE + 2, swY + 2, TILE_SIZE - 4, TILE_SIZE * 0.4 - 4);
+  }
+}
+
 function drawCasinoInteriorLabel(ctx: CanvasRenderingContext2D) {
   // Neon sign inside the casino — "GOLDEN DRAGON" on the back wall
   const signX = 4 * TILE_SIZE;
@@ -474,17 +674,23 @@ function drawUI(
   ctx.fillStyle = "rgba(0,0,0,0.5)";
   ctx.fillRect(mmX - 2, mmY - 2, mmSize + 4, mmSize * (activeH / activeW) + 4);
 
+  const useTiledMinimap = tiledMapReady() && activeW === TILED_MAP_WIDTH;
   for (let ty = 0; ty < activeH; ty++) {
     for (let tx = 0; tx < activeW; tx++) {
-      const tile = activeMap[ty][tx];
-      let color = "#5a8f3c";
-      if (tile === 1) color = "#d4a574";
-      else if (tile === 2 || tile === 22) color = "#3498db";
-      else if (tile === 3 || tile === 4) color = "#2e7d32";
-      else if (tile >= 5 && tile <= 7 || tile === 16 || tile === 17 || tile === 18) color = "#8d6e63";
-      else if (tile === 8) color = "#a1887f";
-      else if (tile === 11) color = "#f1c40f";
-      else if (tile === 15) color = "#f0d9a0";
+      let color: string;
+      if (useTiledMinimap) {
+        color = getTiledMinimapColor(tx, ty);
+      } else {
+        const tile = activeMap[ty]?.[tx] ?? 0;
+        color = "#5a8f3c";
+        if (tile === 1) color = "#d4a574";
+        else if (tile === 2 || tile === 22) color = "#3498db";
+        else if (tile === 3 || tile === 4) color = "#2e7d32";
+        else if (tile >= 5 && tile <= 7 || tile === 16 || tile === 17 || tile === 18) color = "#8d6e63";
+        else if (tile === 8) color = "#a1887f";
+        else if (tile === 11) color = "#f1c40f";
+        else if (tile === 15) color = "#f0d9a0";
+      }
 
       ctx.fillStyle = color;
       ctx.fillRect(mmX + tx * mmScale, mmY + ty * mmScale, mmScale + 0.5, mmScale + 0.5);

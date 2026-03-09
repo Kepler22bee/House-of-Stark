@@ -33,8 +33,23 @@
   },
   "contracts": [
     {
-      "address": "0x4c622d07d621394e2238c075abbeecb5d0ae16174a843b08e268383b590538",
-      "class_hash": "0x693996a1e0d165ecc45755b93cacd55f2208e1fafdd5e7efb298b3d038941c4",
+      "address": "0x48573fff1164e5f2500a21cc8436f8f920a9c43205b738a50be5f953148fc2a",
+      "class_hash": "0x592d14a03390bdfe84c1c5bd7b8c06e34ca9a9244ace85ba637e39e8ef6ed5e",
+      "init_calldata": [],
+      "tag": "cairo_casino-casino",
+      "selector": "0x55fa8d23791667914056d3c75b5ea501c6626f8093e759f82fed8db9e16e037",
+      "systems": [
+        "initialize",
+        "place_bet",
+        "settle",
+        "deposit",
+        "withdraw",
+        "upgrade"
+      ]
+    },
+    {
+      "address": "0x46cbe1b568758b1bcf90dfc04cfe0fc64e0ad3e8d1eaf065a3158d0743c47fb",
+      "class_hash": "0x62059bce8daffc0515cee35a89a18758a6d8ed1708933c12456f1a02fee69b0",
       "init_calldata": [],
       "tag": "cairo_casino-coin_toss",
       "selector": "0x508b314bddfeb61973c229ed4a3e7206aa802efba350009265029ca1c8a78ce",
@@ -214,6 +229,176 @@
     },
     {
       "type": "interface",
+      "name": "cairo_casino::systems::casino::ICasino",
+      "items": [
+        {
+          "type": "function",
+          "name": "initialize",
+          "inputs": [
+            {
+              "name": "owner",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "token_address",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "fee_token",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "coin_toss",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "event_relayer",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "context_address",
+              "type": "core::option::Option::<core::starknet::contract_address::ContractAddress>"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "place_bet",
+          "inputs": [
+            {
+              "name": "choice",
+              "type": "core::integer::u8"
+            },
+            {
+              "name": "player_name",
+              "type": "core::option::Option::<core::felt252>"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u64"
+            }
+          ],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "settle",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "deposit",
+          "inputs": [
+            {
+              "name": "amount",
+              "type": "core::integer::u256"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "withdraw",
+          "inputs": [
+            {
+              "name": "amount",
+              "type": "core::integer::u256"
+            }
+          ],
+          "outputs": [],
+          "state_mutability": "external"
+        },
+        {
+          "type": "function",
+          "name": "house_balance",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::integer::u256"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "bet_amount",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::integer::u256"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "coin_toss_address",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "event_relayer_address",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "cairo_casino::systems::casino::casino::Event",
+      "kind": "enum",
+      "variants": [
+        {
+          "name": "UpgradeableEvent",
+          "type": "dojo::contract::components::upgradeable::upgradeable_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "WorldProviderEvent",
+          "type": "dojo::contract::components::world_provider::world_provider_cpt::Event",
+          "kind": "nested"
+        },
+        {
+          "name": "MetagameEvent",
+          "type": "game_components_metagame::metagame::MetagameComponent::Event",
+          "kind": "flat"
+        },
+        {
+          "name": "SRC5Event",
+          "type": "openzeppelin_introspection::src5::SRC5Component::Event",
+          "kind": "flat"
+        }
+      ]
+    },
+    {
+      "type": "interface",
       "name": "cairo_casino::systems::coin_toss::ICoinToss",
       "items": [
         {
@@ -226,6 +411,10 @@
             },
             {
               "name": "token_address",
+              "type": "core::starknet::contract_address::ContractAddress"
+            },
+            {
+              "name": "vrf_provider_address",
               "type": "core::starknet::contract_address::ContractAddress"
             }
           ],
@@ -544,6 +733,16 @@
       ]
     },
     {
+      "type": "struct",
+      "name": "core::array::Span::<game_components_minigame::structs::GameDetail>",
+      "members": [
+        {
+          "name": "snapshot",
+          "type": "@core::array::Array::<game_components_minigame::structs::GameDetail>"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "core::bool",
       "variants": [
@@ -572,6 +771,20 @@
         {
           "name": "pending_word_len",
           "type": "core::internal::bounded_int::BoundedInt::<0, 30>"
+        }
+      ]
+    },
+    {
+      "type": "struct",
+      "name": "core::integer::u256",
+      "members": [
+        {
+          "name": "low",
+          "type": "core::integer::u128"
+        },
+        {
+          "name": "high",
+          "type": "core::integer::u128"
         }
       ]
     },
@@ -2416,6 +2629,40 @@
     },
     {
       "type": "interface",
+      "name": "game_components_metagame::interface::IMetagame",
+      "items": [
+        {
+          "type": "function",
+          "name": "context_address",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "default_token_address",
+          "inputs": [],
+          "outputs": [
+            {
+              "type": "core::starknet::contract_address::ContractAddress"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "event",
+      "name": "game_components_metagame::metagame::MetagameComponent::Event",
+      "kind": "enum",
+      "variants": []
+    },
+    {
+      "type": "interface",
       "name": "game_components_minigame::interface::IMinigame",
       "items": [
         {
@@ -2507,6 +2754,60 @@
     },
     {
       "type": "interface",
+      "name": "game_components_minigame::interface::IMinigameDetails",
+      "items": [
+        {
+          "type": "function",
+          "name": "token_name",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::byte_array::ByteArray"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "token_description",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::byte_array::ByteArray"
+            }
+          ],
+          "state_mutability": "view"
+        },
+        {
+          "type": "function",
+          "name": "game_details",
+          "inputs": [
+            {
+              "name": "token_id",
+              "type": "core::integer::u64"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "core::array::Span::<game_components_minigame::structs::GameDetail>"
+            }
+          ],
+          "state_mutability": "view"
+        }
+      ]
+    },
+    {
+      "type": "interface",
       "name": "game_components_minigame::interface::IMinigameTokenData",
       "items": [
         {
@@ -2548,6 +2849,20 @@
       "name": "game_components_minigame::minigame::MinigameComponent::Event",
       "kind": "enum",
       "variants": []
+    },
+    {
+      "type": "struct",
+      "name": "game_components_minigame::structs::GameDetail",
+      "members": [
+        {
+          "name": "name",
+          "type": "core::byte_array::ByteArray"
+        },
+        {
+          "name": "value",
+          "type": "core::byte_array::ByteArray"
+        }
+      ]
     },
     {
       "type": "interface",

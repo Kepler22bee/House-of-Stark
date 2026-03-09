@@ -1,4 +1,4 @@
-import { TileType as T } from "./tiles";
+import { TileType as T, TILE_SIZE } from "./tiles";
 import { NPC } from "./map";
 
 // Shorthand aliases
@@ -16,60 +16,99 @@ const cw = T.CASINO_WALL;
 const ln = T.LANTERN;
 const np = T.NEON_PINK;
 const nb = T.NEON_BLUE;
-const st = T.CASINO_STAIRS;
 
-export const CASINO_MAP_WIDTH = 30;
-export const CASINO_MAP_HEIGHT = 20;
+export const CASINO_MAP_WIDTH = 60;
+export const CASINO_MAP_HEIGHT = 40;
 
-// 30x20 compact casino interior
+// 60x40 casino interior — matches overworld dimensions for fullscreen
 export const casinoMap: number[][] = [
-// Row 0 — top wall with stairs entrance
-  [ cw, cw, cw, np, cw, cw, cw, cw, cw, cw, cw, cw, cw, st, st, st, st, cw, cw, cw, cw, cw, cw, cw, cw, cw, np, cw, cw, cw ],
-// Row 1 — bar + cashier + stairs area
-  [ cw, cb, cb, cb, cb, cb, cw, ln, cc, cc, cc, cc, cv, cc, cc, cc, cv, cc, cc, cc, cc, cc, ln, cw, cb, cb, cb, cb, ck, cw ],
+// Row 0 — top wall
+  [ cw, cw, cw, cw, cw, np, cw, cw, cw, cw, cw, cw, cw, cw, np, cw, cw, cw, cw, cw, cw, cw, cw, np, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, np, cw, cw, cw, cw, cw, cw, cw, cw, np, cw, cw, cw, cw, cw, cw, cw, cw, np, cw, cw, cw, cw, cw, cw, cw ],
+// Row 1 — back wall with bar sections
+  [ cw, cw, np, cw, cb, cb, cb, cb, cb, cb, cb, cw, cw, ln, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, ln, cw, cw, cb, cb, cb, cb, cb, cb, cb, cw, nb, cw, cw ],
 // Row 2 — bar stools
-  [ cw, cs, cc, cs, cc, cs, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cs, cc, cs, cc, cs, cw ],
-// Row 3 — open floor + columns
-  [ np, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, nb ],
-// Row 4 — slot machines
-  [ cw, cc, sm, cc, sm, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, sm, cc, sm, cc, cw ],
-// Row 5 — rug top + tables start
-  [ cw, cc, cc, cc, cc, cc, cr, cr, cr, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cr, cr, cr, cc, cc, cc, cc, cc, cw ],
-// Row 6 — COIN TOSS tables (left) + PRICE PREDICTION tables (right)
-  [ cw, cc, cc, ct, ct, cc, cr, cc, ln, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, ln, cc, cr, cc, ct, ct, cc, cc, cw ],
-// Row 7 — tables row 2
-  [ np, cc, cc, ct, ct, cc, cr, cc, cc, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cc, cc, cr, cc, ct, ct, cc, cc, nb ],
-// Row 8 — rug bottom
-  [ cw, cc, cc, cc, cc, cc, cr, cr, cr, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cr, cr, cr, cc, cc, cc, cc, cc, cw ],
-// Row 9 — open floor
-  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
-// Row 10 — VIP rug top
-  [ cw, cc, cc, cc, cc, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cc, cc, cc, cc, cw ],
-// Row 11 — VIP tables
-  [ np, cc, cc, cc, cc, cr, cc, cc, ct, ct, cc, cc, ln, cc, cc, cc, cc, ln, cc, cc, ct, ct, cc, cc, cr, cc, cc, cc, cc, nb ],
-// Row 12 — VIP rug bottom
-  [ cw, cc, cc, cc, cc, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cc, cc, cc, cc, cw ],
-// Row 13 — open floor + columns
-  [ cw, cc, sm, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, sm, cc, cw ],
+  [ cw, ln, cc, cc, cs, cc, cs, cc, cs, cc, cs, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cs, cc, cs, cc, cs, cc, cs, cc, cc, ln, cw ],
+// Row 3 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 4 — cashier + columns
+  [ cw, cc, ck, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, ck, cc, cw ],
+// Row 5 — slot machines row
+  [ np, cc, cc, cc, sm, cc, sm, cc, sm, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, sm, cc, sm, cc, sm, cc, cc, cc, nb ],
+// Row 6 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 7 — rug top border (left section + right section)
+  [ cw, cc, cc, cc, cc, cc, cc, cr, cr, cr, cr, cr, cr, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cr, cr, cr, cr, cr, cr, cc, cc, cc, cc, cc, cc, cw ],
+// Row 8 — COIN TOSS tables (left) + PRICE PREDICTION tables (right)
+  [ cw, cc, cc, ct, ct, cc, cc, cr, cc, cc, cc, cc, cc, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cc, cc, cc, cc, cc, cr, cc, cc, ct, ct, cc, cc, cw ],
+// Row 9 — tables + center rug with lanterns
+  [ cw, cc, cc, ct, ct, cc, cc, cr, cc, cc, ln, cc, cc, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cc, cc, ln, cc, cc, cr, cc, cc, ct, ct, cc, cc, cw ],
+// Row 10 — tables
+  [ cw, cc, cc, ct, ct, cc, cc, cr, cc, cc, cc, cc, cc, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cc, cc, cc, cc, cc, cr, cc, cc, ct, ct, cc, cc, cw ],
+// Row 11 — rug bottom border
+  [ cw, cc, cc, cc, cc, cc, cc, cr, cr, cr, cr, cr, cr, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cr, cr, cr, cr, cr, cr, cc, cc, cc, cc, cc, cc, cw ],
+// Row 12 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 13 — columns + slot machines
+  [ np, cc, cc, sm, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, sm, cc, cc, nb ],
 // Row 14 — open floor
-  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
-// Row 15 — velvet ropes
-  [ np, cc, cc, cc, cc, cc, cv, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cv, cc, cc, cc, cc, cc, nb ],
-// Row 16 — lanterns near entrance
-  [ cw, ln, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, ln, cw ],
-// Row 17 — entrance hallway with exit
-  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, ce, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
-// Row 18 — open floor near exit
-  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
-// Row 19 — bottom wall
-  [ cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw ],
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 15 — open with slot machines on sides
+  [ cw, cc, sm, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, sm, cc, cw ],
+// Row 16 — center VIP rug top
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 17 — VIP tables left
+  [ cw, cc, cc, cc, sm, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cc, cc, ct, ct, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, ct, ct, cc, cc, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, sm, cc, cc, cc, cc, cw ],
+// Row 18 — VIP center with lanterns
+  [ np, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cc, cc, ct, ct, cc, cc, cc, ln, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, ln, cc, cc, cc, ct, ct, cc, cc, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, nb ],
+// Row 19 — VIP tables right
+  [ cw, cc, cc, cc, sm, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cc, cc, ct, ct, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, ct, ct, cc, cc, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, sm, cc, cc, cc, cc, cw ],
+// Row 20 — VIP rug bottom
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 21 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 22 — slot machines row
+  [ np, cc, sm, cc, sm, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, sm, cc, sm, cc, nb ],
+// Row 23 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 24 — more slot machines + columns
+  [ cw, cc, cc, cc, sm, cc, sm, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, sm, cc, sm, cc, cc, cc, cw ],
+// Row 25 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 26 — slot machines on sides
+  [ np, cc, cc, sm, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, sm, cc, cc, nb ],
+// Row 27 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 28 — columns
+  [ cw, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, co, cc, cc, cc, cc, cc, cw ],
+// Row 29 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 30 — open floor
+  [ np, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, nb ],
+// Row 31 — slot machines
+  [ cw, cc, sm, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, sm, cc, cw ],
+// Row 32 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 33 — velvet rope area near entrance
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cv, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cv, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 34 — open floor
+  [ np, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, nb ],
+// Row 35 — lanterns near entrance
+  [ cw, ln, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, ln, cw ],
+// Row 36 — entrance hallway
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, ce, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 37 — open floor near exit
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 38 — open floor
+  [ cw, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cc, cw ],
+// Row 39 — bottom wall
+  [ cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw ],
 ];
 
-// Casino interior NPCs — positions scaled to 30x20 map
+// Casino interior NPCs — positions for 30x30 tiled casino map
 export const casinoNpcs: NPC[] = [
   {
-    x: 4 * 32 + 8,
-    y: 7 * 32 + 8,
+    x: 5 * TILE_SIZE + 8,
+    y: 4 * TILE_SIZE + 8,
     name: "Coin Toss Dealer",
     dialogue: [
       "Welcome to the Coin Toss table!",
@@ -82,8 +121,8 @@ export const casinoNpcs: NPC[] = [
     icon: "🪙",
   },
   {
-    x: 26 * 32 + 8,
-    y: 7 * 32 + 8,
+    x: 22 * TILE_SIZE + 8,
+    y: 4 * TILE_SIZE + 8,
     name: "Price Dealer",
     dialogue: [
       "This is the Price Prediction table.",
@@ -96,8 +135,8 @@ export const casinoNpcs: NPC[] = [
     icon: "📈",
   },
   {
-    x: 15 * 32 + 8,
-    y: 2 * 32 + 8,
+    x: 14 * TILE_SIZE + 8,
+    y: 12 * TILE_SIZE + 8,
     name: "Bartender Jin",
     dialogue: [
       "Hey there, fresh face! Welcome to the Dragon.",
@@ -112,8 +151,8 @@ export const casinoNpcs: NPC[] = [
     icon: "🍶",
   },
   {
-    x: 28 * 32 + 8,
-    y: 2 * 32 + 8,
+    x: 2 * TILE_SIZE + 8,
+    y: 10 * TILE_SIZE + 8,
     name: "Cashier Mae",
     dialogue: [
       "Need chips? I handle all exchanges here.",
@@ -125,8 +164,21 @@ export const casinoNpcs: NPC[] = [
     icon: "💰",
   },
   {
-    x: 15 * 32 + 8,
-    y: 11 * 32 + 8,
+    x: 24 * TILE_SIZE + 8,
+    y: 10 * TILE_SIZE + 8,
+    name: "Lucky Pete",
+    dialogue: [
+      "I've been on a hot streak all night!",
+      "Three sevens on the slots... TWICE!",
+      "This place is magic, I tell ya.",
+    ],
+    color: "#2ecc71",
+    hairColor: "#e74c3c",
+    icon: "🍀",
+  },
+  {
+    x: 8 * TILE_SIZE + 8,
+    y: 15 * TILE_SIZE + 8,
     name: "VIP Host Rena",
     dialogue: [
       "Welcome to the VIP section, high roller.",
@@ -139,17 +191,8 @@ export const casinoNpcs: NPC[] = [
     icon: "👑",
   },
   {
-    x: 12 * 32 + 8,
-    y: 2 * 32 + 8,
-    name: "Bouncer Kaz",
-    dialogue: ["..."],
-    color: "#2c3e50",
-    hairColor: "#1a1a1a",
-    icon: "🚫",
-  },
-  {
-    x: 10 * 32 + 8,
-    y: 15 * 32 + 8,
+    x: 5 * TILE_SIZE + 8,
+    y: 21 * TILE_SIZE + 8,
     name: "Gambler Ryo",
     dialogue: [
       "Psst... wanna know a secret?",
@@ -160,6 +203,46 @@ export const casinoNpcs: NPC[] = [
     color: "#607d8b",
     hairColor: "#455a64",
     icon: "🤫",
+  },
+  {
+    x: 20 * TILE_SIZE + 8,
+    y: 21 * TILE_SIZE + 8,
+    name: "Bouncer Kaz",
+    dialogue: [
+      "Keep it civil in here, alright?",
+      "No funny business near the tables.",
+      "The boss is always watching...",
+    ],
+    color: "#37474f",
+    hairColor: "#212121",
+    icon: "💪",
+  },
+  {
+    x: 26 * TILE_SIZE + 8,
+    y: 27 * TILE_SIZE + 8,
+    name: "Singer Lila",
+    dialogue: [
+      "♪ Lady luck, won't you smile tonight... ♪",
+      "Oh, hello! Just practicing my set.",
+      "The music keeps the gamblers happy.",
+      "And happy gamblers spend more coins!",
+    ],
+    color: "#ab47bc",
+    hairColor: "#ff7043",
+    icon: "🎤",
+  },
+  {
+    x: 16 * TILE_SIZE + 8,
+    y: 14 * TILE_SIZE + 8,
+    name: "Doorman Hiro",
+    dialogue: [
+      "The exit is right behind me, friend.",
+      "Press E on the EXIT marker to leave.",
+      "Come back anytime — luck awaits!",
+    ],
+    color: "#5d4037",
+    hairColor: "#3e2723",
+    icon: "🚪",
   },
 ];
 
@@ -180,9 +263,5 @@ export const casinoTileInteractions: Record<number, string[]> = {
   [T.CASINO_EXIT]: [
     "The exit back to Fortune Falls.",
     "Leaving so soon?",
-  ],
-  [T.CASINO_STAIRS]: [
-    "Stairs to the upper floor.",
-    "Only high rollers with 5000+ points may enter.",
   ],
 };

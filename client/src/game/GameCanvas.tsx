@@ -5,7 +5,12 @@ import { renderGame, SceneData } from "./renderer";
 import { npcs, NPC, gameMap, MAP_WIDTH, MAP_HEIGHT, tileInteractions } from "./map";
 import { casinoMap, CASINO_MAP_WIDTH, CASINO_MAP_HEIGHT, casinoNpcs, casinoTileInteractions } from "./casino-map";
 import { TILE_INFO, TileType, TILE_SIZE } from "./tiles";
-import { createRobot, updateRobot, Robot } from "./robot";
+// Robot disabled — using fe companion instead
+// import { createRobot, updateRobot, Robot } from "./robot";
+import { loadAllSprites } from "./sprites";
+import { loadTiledMap, CASINO_BUILDING } from "./tiledMap";
+import { loadTiledCasino, casinoTiledReady, CASINO_MAP_W, CASINO_MAP_H, CASINO_EXIT, isInCasinoExit } from "./tiledCasino";
+import { createCompanion, updateCompanion, loadCompanionSprite, Companion } from "./companion";
 import { CoinTossGame } from "../games/coin-toss";
 import { PricePredictionGame } from "../games/price-prediction";
 
@@ -116,7 +121,7 @@ export default function GameCanvas() {
   const casinoIntroRef = useRef<IntroState>({ active: false, line: 0, dismissed: false });
   const agentMenuRef = useRef<AgentMenuState>({ active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 });
   const overworldPosRef = useRef<{ x: number; y: number }>({ x: 18 * TILE_SIZE, y: 32 * TILE_SIZE });
-  const robotRef = useRef<Robot>(createRobot(playerRef.current));
+  const companionRef = useRef<Companion>(createCompanion(playerRef.current));
 
   // React state for game overlays (so React components render)
   const [activeGameScreen, setActiveGameScreen] = useState<"coin_toss" | "price_prediction" | null>(null);
@@ -128,6 +133,9 @@ export default function GameCanvas() {
 
   const getActiveMap = useCallback((): { map: number[][]; width: number; height: number } => {
     if (sceneRef.current === "casino") {
+      if (casinoTiledReady()) {
+        return { map: casinoMap, width: CASINO_MAP_W, height: CASINO_MAP_H };
+      }
       return { map: casinoMap, width: CASINO_MAP_WIDTH, height: CASINO_MAP_HEIGHT };
     }
     return { map: gameMap, width: MAP_WIDTH, height: MAP_HEIGHT };
@@ -142,14 +150,14 @@ export default function GameCanvas() {
   }, []);
 
   const switchToCasino = useCallback(() => {
-    // Save overworld position
     overworldPosRef.current = { x: playerRef.current.x, y: playerRef.current.y };
-    // Move player to casino entrance (near exit door at col 14, row 16)
-    playerRef.current.x = 14 * TILE_SIZE;
-    playerRef.current.y = 16 * TILE_SIZE;
+    // Spawn at bottom of carpet runner, just above exit zone
+    playerRef.current.x = CASINO_EXIT.x * TILE_SIZE;
+    playerRef.current.y = (CASINO_EXIT.y - 2) * TILE_SIZE;
     playerRef.current.direction = "up";
     sceneRef.current = "casino";
-    // Show casino intro tutorial
+    companionRef.current.x = playerRef.current.x - TILE_SIZE;
+    companionRef.current.y = playerRef.current.y;
     casinoIntroRef.current = { active: true, line: 0, dismissed: false };
   }, []);
 
@@ -159,6 +167,8 @@ export default function GameCanvas() {
     playerRef.current.y = overworldPosRef.current.y;
     playerRef.current.direction = "down";
     sceneRef.current = "overworld";
+    companionRef.current.x = playerRef.current.x - TILE_SIZE;
+    companionRef.current.y = playerRef.current.y;
   }, []);
 
   const tryInteract = useCallback(() => {
@@ -219,6 +229,29 @@ export default function GameCanvas() {
         tileDialogueRef.current = { active: false, lines: [], line: 0 };
       }
       return;
+    }
+
+    // Casino exit — check if player is in the exit zone
+    if (sceneRef.current === "casino" && casinoTiledReady()) {
+      const ptx = Math.floor((player.x + TILE_SIZE / 2) / TILE_SIZE);
+      const pty = Math.floor((player.y + TILE_SIZE / 2) / TILE_SIZE);
+      if (isInCasinoExit(ptx, pty)) {
+        switchToOverworld();
+        return;
+      }
+    }
+
+    // Casino door entrance — check if player is near the door tile on overworld
+    if (sceneRef.current === "overworld") {
+      const doorPx = CASINO_BUILDING.doorX * TILE_SIZE;
+      const doorPy = CASINO_BUILDING.doorY * TILE_SIZE;
+      const dist = Math.sqrt(
+        Math.pow(player.x - doorPx, 2) + Math.pow(player.y - doorPy, 2)
+      );
+      if (dist < 60) {
+        switchToCasino();
+        return;
+      }
     }
 
     const activeNpcs = getActiveNpcs();
@@ -285,6 +318,11 @@ export default function GameCanvas() {
   }, [getActiveNpcs, getActiveMap, getActiveInteractions, switchToCasino, switchToOverworld]);
 
   useEffect(() => {
+    loadAllSprites();
+    loadTiledMap();
+    loadTiledCasino();
+    loadCompanionSprite();
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -425,16 +463,16 @@ export default function GameCanvas() {
       }
 
       const { map, width, height } = getActiveMap();
-      const mapData: MapData = { map, width, height };
+      const currentScene = sceneRef.current;
+      const mapData: MapData = { map, width, height, scene: currentScene };
 
       // Don't move during any dialogue/intro
       const blocked = introRef.current.active || casinoIntroRef.current.active || dialogueRef.current.active || tileDialogueRef.current.active || gameScreenRef.current.active || agentMenuRef.current.active;
       if (!blocked) {
         updatePlayer(playerRef.current, keysRef.current, dt, mapData);
       }
+      updateCompanion(companionRef.current, playerRef.current, dt);
 
-      // Always update robot (follows player even during dialogues)
-      updateRobot(robotRef.current, playerRef.current, dt);
 
       ctx.imageSmoothingEnabled = false;
 
@@ -461,7 +499,8 @@ export default function GameCanvas() {
         sceneData,
         null, // Game screens are now React overlays, not canvas-drawn
         agentMenuRef.current.active ? agentMenuRef.current : null,
-        robotRef.current,
+        null, // robot disabled
+        companionRef.current,
       );
 
       animId = requestAnimationFrame(gameLoop);

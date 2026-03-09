@@ -1,0 +1,10 @@
+{
+  "rpc_url": "http://localhost:5050/",
+  "world_address": "0x2a230724e23980f9cfb20011301f8b1c50d8dbef2543f8150d5f89617bb57d4",
+  "coin_toss_address": "0x46cbe1b568758b1bcf90dfc04cfe0fc64e0ad3e8d1eaf065a3158d0743c47fb",
+  "event_relayer_address": "0x5af5efc76dceda1eb5782827ab77fd63a8d16b4671e57c35cb4f7b43191ae15",
+  "token_address": "0x1c68e98ab94b64214e717303959579ce0edf95e9c08d38a5932861d2aa645ec",
+  "casino_address": "0x48573fff1164e5f2500a21cc8436f8f920a9c43205b738a50be5f953148fc2a",
+  "vrf_provider_address": "0x051fea4450da9d6aee758bdeba88b2f665bcbf549d2c61421aa724e9ac0ced8f",
+  "fee_token_address": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+}

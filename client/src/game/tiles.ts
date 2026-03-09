@@ -1,5 +1,5 @@
 // Tile types and their properties
-export const TILE_SIZE = 32;
+export const TILE_SIZE = 48;
 
 export enum TileType {
   GRASS = 0,
@@ -126,12 +126,19 @@ export const TILE_INFO: Record<TileType, TileInfo> = {
   [TileType.CASINO_STAIRS]: { solid: false, color: "#4a3a2e", color2: "#fdd835", interactable: true, label: "Go Upstairs" },
 };
 
+import { drawSprite } from "./sprites";
+
 export function drawTile(ctx: CanvasRenderingContext2D, type: TileType, x: number, y: number) {
   const info = TILE_INFO[type];
   const px = x * TILE_SIZE;
   const py = y * TILE_SIZE;
 
-  // Base color
+  // Try sprite-based rendering first (only for non-casino overworld tiles)
+  if (type < TileType.CASINO_WALL || type === TileType.SIDEWALK) {
+    if (drawSprite(ctx, type, px, py, TILE_SIZE)) return;
+  }
+
+  // Fallback: procedural rendering
   ctx.fillStyle = info.color;
   ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
 
@@ -185,28 +192,23 @@ export function drawTile(ctx: CanvasRenderingContext2D, type: TileType, x: numbe
       break;
 
     case TileType.TREE_TRUNK:
-      // Brown trunk
-      ctx.fillStyle = info.color2!;
-      ctx.fillRect(px + 10, py, 12, TILE_SIZE);
-      // Bark detail
-      ctx.fillStyle = "#3e2723";
-      ctx.fillRect(px + 13, py + 5, 3, 6);
-      ctx.fillRect(px + 15, py + 18, 4, 5);
+      // Draw grass base — tree overlay covers this
+      ctx.fillStyle = "#5a8f3c";
+      ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+      ctx.fillStyle = "#4e7d34";
+      ctx.fillRect(px + 5, py + 8, 2, 4);
+      ctx.fillRect(px + 18, py + 15, 2, 4);
+      ctx.fillRect(px + 25, py + 6, 2, 4);
       break;
 
     case TileType.TREE_TOP:
-      // Foliage circle-ish shape
-      ctx.fillStyle = "#2e7d32";
-      ctx.beginPath();
-      ctx.arc(px + 16, py + 18, 16, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#1b5e20";
-      ctx.beginPath();
-      ctx.arc(px + 12, py + 14, 10, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#43a047";
-      ctx.beginPath();
-      ctx.arc(px + 20, py + 12, 8, 0, Math.PI * 2);
+      // Draw grass base — tree sprite overlay covers this in second pass
+      ctx.fillStyle = "#5a8f3c";
+      ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+      ctx.fillStyle = "#4e7d34";
+      ctx.fillRect(px + 7, py + 12, 2, 4);
+      ctx.fillRect(px + 20, py + 5, 2, 4);
+      ctx.fillRect(px + 14, py + 22, 2, 4);
       ctx.fill();
       break;
 

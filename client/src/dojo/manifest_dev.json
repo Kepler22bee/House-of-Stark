@@ -1,13 +1,10 @@
 {
   "world": {
-    "class_hash": "0x3bd819e76de9e7747ac30c06e7b79850893eeb566d1a6e5e0606ab2790155e3",
-    "address": "0x1677b5a4864b62c784aeca3b0b8b62c8100c56952f3d50927a40007f1278978",
+    "class_hash": "0x613551abceb2b37073b1149bb862ea70cf029981ce1ca47e9dd7c7ab97cb65d",
+    "address": "0x2a230724e23980f9cfb20011301f8b1c50d8dbef2543f8150d5f89617bb57d4",
     "seed": "cairo_casino",
     "name": "cairo_casino",
     "entrypoints": [
-      "set_entity_test",
-      "delete_entity_test",
-      "emit_event_test",
       "uuid",
       "set_metadata",
       "register_namespace",
@@ -36,7 +33,7 @@
   },
   "contracts": [
     {
-      "address": "0x7997fd20867e013d8874c3f1f52a5bf63bfdf2f13988247c9403c17d10e962d",
+      "address": "0x48573fff1164e5f2500a21cc8436f8f920a9c43205b738a50be5f953148fc2a",
       "class_hash": "0x592d14a03390bdfe84c1c5bd7b8c06e34ca9a9244ace85ba637e39e8ef6ed5e",
       "init_calldata": [],
       "tag": "cairo_casino-casino",
@@ -51,7 +48,7 @@
       ]
     },
     {
-      "address": "0x423c5491dd7cfd52c542cc5d7fddbd8293401586e12c995189a1d877955815f",
+      "address": "0x46cbe1b568758b1bcf90dfc04cfe0fc64e0ad3e8d1eaf065a3158d0743c47fb",
       "class_hash": "0x62059bce8daffc0515cee35a89a18758a6d8ed1708933c12456f1a02fee69b0",
       "init_calldata": [],
       "tag": "cairo_casino-coin_toss",
@@ -63,7 +60,7 @@
       ]
     },
     {
-      "address": "0xb2aa1bdc271d4423f797447391352d927c2d0d7bbbe2bf5aa50898c9b4ca06",
+      "address": "0x5af5efc76dceda1eb5782827ab77fd63a8d16b4671e57c35cb4f7b43191ae15",
       "class_hash": "0x63b3c2971924e287f675d02987b159d3922c37ad18b0e32031fdf865078983b",
       "init_calldata": [],
       "tag": "cairo_casino-event_relayer",
@@ -1896,92 +1893,6 @@
         {
           "name": "contract_address",
           "type": "core::starknet::contract_address::ContractAddress"
-        }
-      ]
-    },
-    {
-      "type": "interface",
-      "name": "dojo::world::iworld::IWorldTest",
-      "items": [
-        {
-          "type": "function",
-          "name": "set_entity_test",
-          "inputs": [
-            {
-              "name": "model_selector",
-              "type": "core::felt252"
-            },
-            {
-              "name": "index",
-              "type": "dojo::model::definition::ModelIndex"
-            },
-            {
-              "name": "values",
-              "type": "core::array::Span::<core::felt252>"
-            },
-            {
-              "name": "layout",
-              "type": "dojo::meta::layout::Layout"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "delete_entity_test",
-          "inputs": [
-            {
-              "name": "model_selector",
-              "type": "core::felt252"
-            },
-            {
-              "name": "index",
-              "type": "dojo::model::definition::ModelIndex"
-            },
-            {
-              "name": "layout",
-              "type": "dojo::meta::layout::Layout"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "emit_event_test",
-          "inputs": [
-            {
-              "name": "event_selector",
-              "type": "core::felt252"
-            },
-            {
-              "name": "keys",
-              "type": "core::array::Span::<core::felt252>"
-            },
-            {
-              "name": "values",
-              "type": "core::array::Span::<core::felt252>"
-            }
-          ],
-          "outputs": [],
-          "state_mutability": "external"
-        },
-        {
-          "type": "function",
-          "name": "dojo_contract_address",
-          "inputs": [
-            {
-              "name": "contract_selector",
-              "type": "core::felt252"
-            }
-          ],
-          "outputs": [
-            {
-              "type": "core::starknet::contract_address::ContractAddress"
-            }
-          ],
-          "state_mutability": "view"
         }
       ]
     },
