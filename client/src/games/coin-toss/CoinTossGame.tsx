@@ -129,12 +129,9 @@ export default function CoinTossGame({ onClose }: CoinTossGameProps) {
       const historyContext = aiHistory.length > 0
         ? `\nRecent results: ${aiHistory.slice(-5).map(h => `${h.choice} → ${h.won ? "WIN" : "LOSS"}`).join(", ")}`
         : "";
-      const res = await fetch("https://six-rep-dialog-maintained.trycloudflare.com/v1/chat/completions", {
+      const res = await fetch("/api/ai-chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer ieAVhzun-v2rkGvi3IkNNRvbMoEJj862upk8Rb2LJAo",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "gemma3:4b",
           messages: [

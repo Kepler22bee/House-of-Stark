@@ -491,12 +491,9 @@ export default function GameCanvas() {
     try {
       const scene = sceneRef.current;
       const systemPrompt = `You are Wall-E, a small helpful robot companion in a casino game called Fortune Falls. You follow the player everywhere and help them with betting advice, game tips, and fun commentary. You speak in short, quirky sentences — sometimes mechanical, always endearing. You know about Coin Toss (heads/tails, double-or-nothing) and Price Prediction games. The player is currently in the ${scene}. Keep responses under 60 words.`;
-      const res = await fetch("https://six-rep-dialog-maintained.trycloudflare.com/v1/chat/completions", {
+      const res = await fetch("/api/ai-chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer ieAVhzun-v2rkGvi3IkNNRvbMoEJj862upk8Rb2LJAo",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "gemma3:4b",
           messages: [
