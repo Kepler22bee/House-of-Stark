@@ -400,22 +400,22 @@ function drawUI(
       const info = TILE_INFO[facingTile as TileType];
       if (info?.interactable && info.label) {
         const promptText = `[E] ${info.label}`;
-        ctx.font = "bold 13px 'Courier New', monospace";
-        const tw = ctx.measureText(promptText).width + 20;
+        ctx.font = "bold 22px 'Courier New', monospace";
+        const tw = ctx.measureText(promptText).width + 36;
         const px = (canvasW - tw) / 2;
-        const py = canvasH - 80;
-        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        const py = canvasH - 90;
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
         ctx.beginPath();
-        ctx.roundRect(px, py, tw, 30, 6);
+        ctx.roundRect(px, py, tw, 44, 10);
         ctx.fill();
         ctx.strokeStyle = "#fdd835";
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(px, py, tw, 30, 6);
+        ctx.roundRect(px, py, tw, 44, 10);
         ctx.stroke();
         ctx.fillStyle = "#fdd835";
         ctx.textAlign = "center";
-        ctx.fillText(promptText, canvasW / 2, py + 20);
+        ctx.fillText(promptText, canvasW / 2, py + 30);
       }
     }
     // NPC proximity prompt
@@ -425,22 +425,22 @@ function drawUI(
       );
       if (dist < 60) {
         const promptText = `[E] Talk to ${npc.name}`;
-        ctx.font = "bold 13px 'Courier New', monospace";
-        const tw = ctx.measureText(promptText).width + 20;
+        ctx.font = "bold 22px 'Courier New', monospace";
+        const tw = ctx.measureText(promptText).width + 36;
         const px = (canvasW - tw) / 2;
-        const py = canvasH - 80;
-        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        const py = canvasH - 90;
+        ctx.fillStyle = "rgba(0,0,0,0.75)";
         ctx.beginPath();
-        ctx.roundRect(px, py, tw, 30, 6);
+        ctx.roundRect(px, py, tw, 44, 10);
         ctx.fill();
         ctx.strokeStyle = "#fdd835";
-        ctx.lineWidth = 1;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(px, py, tw, 30, 6);
+        ctx.roundRect(px, py, tw, 44, 10);
         ctx.stroke();
         ctx.fillStyle = "#fdd835";
         ctx.textAlign = "center";
-        ctx.fillText(promptText, canvasW / 2, py + 20);
+        ctx.fillText(promptText, canvasW / 2, py + 30);
         break;
       }
     }
@@ -524,7 +524,7 @@ function drawIntroOverlay(
   ctx.stroke();
 
   const text = intro.lines[intro.line];
-  ctx.font = "14px 'Courier New', monospace";
+  ctx.font = "bold 20px 'Courier New', monospace";
   ctx.fillStyle = "#3a3020";
   ctx.textAlign = "center";
 
@@ -544,10 +544,10 @@ function drawIntroOverlay(
   }
   if (currentLine) wrappedLines.push(currentLine);
 
-  const totalTextH = wrappedLines.length * 22;
-  const textStartY = textPanelY + (textPanelH - totalTextH) / 2 + 14;
+  const totalTextH = wrappedLines.length * 28;
+  const textStartY = textPanelY + (textPanelH - totalTextH) / 2 + 18;
   for (let i = 0; i < wrappedLines.length; i++) {
-    ctx.fillText(wrappedLines[i], canvasW / 2, textStartY + i * 22);
+    ctx.fillText(wrappedLines[i], canvasW / 2, textStartY + i * 28);
   }
 
   // Progress dots

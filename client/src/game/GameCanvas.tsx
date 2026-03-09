@@ -152,9 +152,9 @@ export default function GameCanvas() {
   const switchToCasino = useCallback(() => {
     // Save overworld position
     overworldPosRef.current = { x: playerRef.current.x, y: playerRef.current.y };
-    // Move player to casino entrance (near exit door at col 29, row 35)
-    playerRef.current.x = 29 * TILE_SIZE;
-    playerRef.current.y = 35 * TILE_SIZE;
+    // Move player to casino entrance (near exit door at col 14, row 16)
+    playerRef.current.x = 14 * TILE_SIZE;
+    playerRef.current.y = 16 * TILE_SIZE;
     playerRef.current.direction = "up";
     sceneRef.current = "casino";
     // Show casino intro tutorial
@@ -249,10 +249,26 @@ export default function GameCanvas() {
         return;
       }
 
+      // Casino stairs — blocked by points requirement
+      if (tile === TileType.CASINO_STAIRS && sceneRef.current === "casino") {
+        if (playerMoney >= 5000) {
+          tileDialogueRef.current = { active: true, lines: [
+            "You have enough points! Welcome upstairs, high roller.",
+            "The upper floor awaits... (Coming Soon)",
+          ], line: 0 };
+        } else {
+          tileDialogueRef.current = { active: true, lines: [
+            `You need 5000 points to go upstairs. You have ${playerMoney}.`,
+            "Keep playing and come back when you've earned enough!",
+          ], line: 0 };
+        }
+        return;
+      }
+
       // Casino table — open game screen
       if (tile === TileType.CASINO_TABLE && sceneRef.current === "casino") {
-        // Left tables (cols 3-5) = coin toss, right tables (cols 55-57) = price prediction
-        const isLeftSide = tx < 30;
+        // Left tables (cols 3-4) = coin toss, right tables (cols 25-26) = price prediction
+        const isLeftSide = tx < 15;
         const gameType = isLeftSide ? "coin_toss" as const : "price_prediction" as const;
         gameScreenRef.current = { active: true, type: gameType };
         setActiveGameScreen(gameType);

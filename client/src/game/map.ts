@@ -203,7 +203,7 @@ export const npcs: NPC[] = [
     icon: "💬",
   },
   {
-    x: 18 * 32 + 8,
+    x: 21 * 32 + 8,
     y: 31 * 32 + 8,
     name: "Dealer Yuki",
     dialogue: [

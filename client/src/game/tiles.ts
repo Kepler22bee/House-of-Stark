@@ -57,6 +57,7 @@ export enum TileType {
   CASINO_COLUMN = 51,     // interior support column
   CASINO_CHIP_RACK = 52,  // chip rack / cashier
   CASINO_VELVET = 53,     // velvet rope / VIP area
+  CASINO_STAIRS = 54,     // stairs to upper floor (guarded)
 }
 
 export interface TileInfo {
@@ -96,7 +97,7 @@ export const TILE_INFO: Record<TileType, TileInfo> = {
   [TileType.LAMP]: { solid: true, color: "#f9a825", color2: "#f57f17" },
   [TileType.CASINO_WALL]: { solid: true, color: "#1a1a2e", color2: "#16213e" },
   [TileType.CASINO_ROOF]: { solid: true, color: "#0f3460", color2: "#e94560" },
-  [TileType.CASINO_DOOR]: { solid: false, color: "#1a1a2e", color2: "#e94560", interactable: true, label: "Enter Casino" },
+  [TileType.CASINO_DOOR]: { solid: true, color: "#1a1a2e", color2: "#e94560", interactable: true, label: "Enter Casino" },
   [TileType.NEON_PINK]: { solid: true, color: "#e94560", color2: "#ff6b81" },
   [TileType.NEON_BLUE]: { solid: true, color: "#0f3460", color2: "#00d2ff" },
   [TileType.CASINO_FLOOR]: { solid: false, color: "#1a1a2e", color2: "#2a2a4e" },
@@ -122,6 +123,7 @@ export const TILE_INFO: Record<TileType, TileInfo> = {
   [TileType.CASINO_COLUMN]: { solid: true, color: "#8d7b68", color2: "#fdd835" },
   [TileType.CASINO_CHIP_RACK]: { solid: true, color: "#2a1a3e", color2: "#fdd835", interactable: true, label: "Cashier" },
   [TileType.CASINO_VELVET]: { solid: true, color: "#8b1a4a", color2: "#fdd835" },
+  [TileType.CASINO_STAIRS]: { solid: false, color: "#4a3a2e", color2: "#fdd835", interactable: true, label: "Go Upstairs" },
 };
 
 export function drawTile(ctx: CanvasRenderingContext2D, type: TileType, x: number, y: number) {
@@ -1007,6 +1009,37 @@ export function drawTile(ctx: CanvasRenderingContext2D, type: TileType, x: numbe
       for (let i = 0; i < 3; i++) ctx.fillRect(px + 6 + i * 8, py + 18, 6, 4);
       ctx.fillStyle = "#fdd835";
       for (let i = 0; i < 3; i++) ctx.fillRect(px + 6 + i * 8, py + 24, 6, 4);
+      break;
+    }
+
+    case TileType.CASINO_STAIRS: {
+      ctx.fillStyle = "#8b1a2b";
+      ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+      // Staircase going up
+      ctx.fillStyle = "#4a3a2e";
+      ctx.fillRect(px + 4, py + 2, 24, 28);
+      // Steps
+      for (let i = 0; i < 5; i++) {
+        const stepY = py + 4 + i * 5;
+        const shade = 0.6 + i * 0.08;
+        ctx.fillStyle = `rgba(140,120,90,${shade})`;
+        ctx.fillRect(px + 6, stepY, 20, 4);
+        ctx.fillStyle = "#3a2a1e";
+        ctx.fillRect(px + 6, stepY + 4, 20, 1);
+      }
+      // Gold handrails
+      ctx.fillStyle = "#fdd835";
+      ctx.fillRect(px + 4, py + 2, 2, 28);
+      ctx.fillRect(px + 26, py + 2, 2, 28);
+      // Arrow up
+      const arrowGlow = Math.sin(Date.now() / 500) * 0.3 + 0.7;
+      ctx.fillStyle = `rgba(253,216,53,${arrowGlow})`;
+      ctx.beginPath();
+      ctx.moveTo(px + 16, py + 1);
+      ctx.lineTo(px + 12, py + 6);
+      ctx.lineTo(px + 20, py + 6);
+      ctx.closePath();
+      ctx.fill();
       break;
     }
 
