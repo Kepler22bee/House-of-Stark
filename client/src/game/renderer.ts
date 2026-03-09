@@ -78,9 +78,10 @@ export function renderGame(
     }
   }
 
-  // Draw casino sign text on the marquee (only in overworld)
+  // Draw signs (only in overworld)
   if (scene === "overworld") {
     drawCasinoSign(ctx);
+    drawClankerHouseSign(ctx);
   }
 
   // Draw scene label inside casino
@@ -241,6 +242,46 @@ function drawCasinoSign(ctx: CanvasRenderingContext2D) {
   ctx.font = "bold 11px 'Courier New', monospace";
   ctx.fillStyle = `rgba(200, 230, 255, ${glow * 0.9})`;
   ctx.fillText("CASINO", signX + signW / 2, signY + 26);
+
+  ctx.restore();
+}
+
+function drawClankerHouseSign(ctx: CanvasRenderingContext2D) {
+  // House is at rows 17-20, columns 15-19, roof at row 17
+  const signX = 15 * TILE_SIZE;
+  const signY = 17 * TILE_SIZE;
+  const signW = 5 * TILE_SIZE;
+
+  const glow = Math.sin(Date.now() / 500) * 0.2 + 0.8;
+  ctx.save();
+  ctx.font = "bold 12px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  // Background pill
+  const text = "CLANKER HOUSE";
+  const tw = ctx.measureText(text).width + 16;
+  const cx = signX + signW / 2;
+  const cy = signY - 4;
+  ctx.fillStyle = `rgba(0, 0, 0, ${0.6 * glow})`;
+  ctx.beginPath();
+  ctx.roundRect(cx - tw / 2, cy - 9, tw, 18, 6);
+  ctx.fill();
+
+  // Border
+  ctx.strokeStyle = `rgba(136, 204, 255, ${glow})`;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(cx - tw / 2, cy - 9, tw, 18, 6);
+  ctx.stroke();
+
+  // Text
+  ctx.fillStyle = `rgba(136, 204, 255, ${glow})`;
+  ctx.fillText(text, cx, cy + 1);
+
+  // Robot icon
+  ctx.font = "14px Arial";
+  ctx.fillText("🤖", cx, cy - 18);
 
   ctx.restore();
 }
