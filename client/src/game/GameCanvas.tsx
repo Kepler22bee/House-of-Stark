@@ -131,7 +131,7 @@ export default function GameCanvas() {
   const sceneRef = useRef<Scene>("casino");
   const casinoIntroRef = useRef<IntroState>({ active: false, line: 0, dismissed: false });
   const agentMenuRef = useRef<AgentMenuState>({ active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 });
-  const overworldPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const overworldPosRef = useRef<{ x: number; y: number }>({ x: 18 * TILE_SIZE, y: 32 * TILE_SIZE });
   const robotRef = useRef<Robot>(createRobot(playerRef.current));
 
   // React state for game overlays (so React components render)
@@ -559,56 +559,38 @@ export default function GameCanvas() {
       {aiChatOpen && (
         <div style={{
           position: "fixed",
-          bottom: 20,
-          right: 20,
-          width: 340,
-          maxHeight: 420,
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-          border: "2px solid #88ccff",
-          borderRadius: 12,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 220,
+          background: "linear-gradient(180deg, #1a1a2e 0%, #0e1525 100%)",
+          borderTop: "2px solid #88ccff",
           display: "flex",
           flexDirection: "column",
           fontFamily: "'Courier New', monospace",
           zIndex: 1000,
-          boxShadow: "0 0 20px rgba(136,204,255,0.3)",
+          boxShadow: "0 -4px 20px rgba(136,204,255,0.2)",
         }}>
           {/* Header */}
           <div style={{
-            padding: "10px 14px",
+            padding: "8px 20px",
             borderBottom: "1px solid rgba(136,204,255,0.3)",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
+            gap: 8,
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 20 }}>🤖</span>
-              <span style={{ color: "#88ccff", fontWeight: "bold", fontSize: 14 }}>WALL-E</span>
-              <span style={{ color: "#4a6a8a", fontSize: 10 }}>AI Companion</span>
-            </div>
-            <button
-              onClick={() => setAiChatOpen(false)}
-              style={{
-                background: "none",
-                border: "1px solid #4a6a8a",
-                color: "#88ccff",
-                borderRadius: 4,
-                padding: "2px 8px",
-                cursor: "pointer",
-                fontSize: 12,
-                fontFamily: "'Courier New', monospace",
-              }}
-            >ESC</button>
+            <span style={{ fontSize: 18 }}>🤖</span>
+            <span style={{ color: "#88ccff", fontWeight: "bold", fontSize: 14 }}>WALL-E</span>
+            <span style={{ color: "#4a6a8a", fontSize: 10 }}>AI Companion</span>
           </div>
           {/* Messages */}
           <div style={{
             flex: 1,
             overflowY: "auto",
-            padding: "10px 14px",
+            padding: "8px 20px",
             display: "flex",
             flexDirection: "column",
-            gap: 8,
-            maxHeight: 280,
-            minHeight: 120,
+            gap: 6,
           }}>
             {aiChatMessages.length === 0 && (
               <div style={{ color: "#4a6a8a", fontSize: 12, textAlign: "center", marginTop: 20 }}>
@@ -639,7 +621,7 @@ export default function GameCanvas() {
           </div>
           {/* Input */}
           <div style={{
-            padding: "8px 14px 10px",
+            padding: "8px 20px 12px",
             borderTop: "1px solid rgba(136,204,255,0.3)",
             display: "flex",
             gap: 8,
@@ -651,7 +633,10 @@ export default function GameCanvas() {
               onKeyDown={e => {
                 e.stopPropagation();
                 if (e.key === "Enter") sendAiChat();
-                if (e.key === "Escape") setAiChatOpen(false);
+                if (e.key === "Escape") {
+                  setAiChatOpen(false);
+                  (e.target as HTMLInputElement).blur();
+                }
               }}
               placeholder="Ask Wall-E..."
               autoFocus
@@ -682,6 +667,20 @@ export default function GameCanvas() {
                 fontFamily: "'Courier New', monospace",
               }}
             >Send</button>
+            <button
+              onClick={() => setAiChatOpen(false)}
+              style={{
+                background: "#88ccff22",
+                border: "1px solid #88ccff",
+                color: "#88ccff",
+                borderRadius: 6,
+                padding: "6px 14px",
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: "bold",
+                fontFamily: "'Courier New', monospace",
+              }}
+            >CLOSE</button>
           </div>
         </div>
       )}
