@@ -37,9 +37,20 @@ let collisionMap: boolean[][] | null = null;
 let ready = false;
 let loading = false;
 
-// Exit zone: bottom-center of the carpet runner (cols 14-15, row 16-17 area)
-// The carpet runner goes vertically through the middle of the map
-export const CASINO_EXIT = { x: 14, y: 16, w: 2, h: 2 };
+// Exit zone: very bottom of the casino map
+export const CASINO_EXIT = { x: 13, y: 28, w: 4, h: 2 };
+
+// VIP stairs zone: top of the casino — bouncer blocks access
+export const CASINO_VIP_ZONE = { x: 10, y: 0, w: 10, h: 3 };
+
+export function isInVipZone(tileX: number, tileY: number): boolean {
+  return (
+    tileX >= CASINO_VIP_ZONE.x &&
+    tileX < CASINO_VIP_ZONE.x + CASINO_VIP_ZONE.w &&
+    tileY >= CASINO_VIP_ZONE.y &&
+    tileY < CASINO_VIP_ZONE.y + CASINO_VIP_ZONE.h
+  );
+}
 
 export function casinoTiledReady(): boolean {
   return ready;
@@ -174,6 +185,34 @@ export function drawTiledCasino(
       }
     }
   }
+
+  // Draw VIP stairs marker at top
+  const vx = CASINO_VIP_ZONE.x * TILE_SIZE;
+  const vy = CASINO_VIP_ZONE.y * TILE_SIZE;
+  const vw = CASINO_VIP_ZONE.w * TILE_SIZE;
+  const vh = CASINO_VIP_ZONE.h * TILE_SIZE;
+  const vGlow = Math.sin(Date.now() / 600) * 0.3 + 0.6;
+  // Stairs pattern
+  ctx.fillStyle = `rgba(233, 30, 99, ${vGlow * 0.15})`;
+  ctx.fillRect(vx, vy, vw, vh);
+  // Stair lines
+  ctx.strokeStyle = `rgba(233, 30, 99, ${vGlow * 0.4})`;
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    const sy = vy + vh - i * (vh / 4);
+    ctx.beginPath();
+    ctx.moveTo(vx, sy);
+    ctx.lineTo(vx + vw, sy);
+    ctx.stroke();
+  }
+  // Arrow pointing up
+  ctx.save();
+  ctx.font = "bold 12px 'Courier New', monospace";
+  ctx.textAlign = "center";
+  ctx.fillStyle = `rgba(233, 30, 99, ${vGlow})`;
+  const arrowBob = Math.sin(Date.now() / 400) * 3;
+  ctx.fillText("▲ VIP UPSTAIRS ▲", vx + vw / 2, vy + vh / 2 + 4 + arrowBob);
+  ctx.restore();
 
   // Draw exit marker
   const ex = CASINO_EXIT.x * TILE_SIZE;

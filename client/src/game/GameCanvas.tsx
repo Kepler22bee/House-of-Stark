@@ -9,7 +9,7 @@ import { TILE_INFO, TileType, TILE_SIZE } from "./tiles";
 // import { createRobot, updateRobot, Robot } from "./robot";
 import { loadAllSprites } from "./sprites";
 import { loadTiledMap, CASINO_BUILDING } from "./tiledMap";
-import { loadTiledCasino, casinoTiledReady, CASINO_MAP_W, CASINO_MAP_H, CASINO_EXIT, isInCasinoExit } from "./tiledCasino";
+import { loadTiledCasino, casinoTiledReady, CASINO_MAP_W, CASINO_MAP_H, CASINO_EXIT, isInCasinoExit, isInVipZone } from "./tiledCasino";
 import { createCompanion, updateCompanion, loadCompanionSprite, Companion } from "./companion";
 import { CoinTossGame } from "../games/coin-toss";
 import { PricePredictionGame } from "../games/price-prediction";
@@ -120,7 +120,7 @@ export default function GameCanvas() {
   const sceneRef = useRef<Scene>("casino");
   const casinoIntroRef = useRef<IntroState>({ active: false, line: 0, dismissed: false });
   const agentMenuRef = useRef<AgentMenuState>({ active: false, tab: "agents", selectedAgent: 0, scrollOffset: 0 });
-  const overworldPosRef = useRef<{ x: number; y: number }>({ x: 18 * TILE_SIZE, y: 32 * TILE_SIZE });
+  const overworldPosRef = useRef<{ x: number; y: number }>({ x: 41 * TILE_SIZE, y: 34 * TILE_SIZE });
   const companionRef = useRef<Companion>(createCompanion(playerRef.current));
 
   // React state for game overlays (so React components render)
@@ -479,6 +479,24 @@ export default function GameCanvas() {
         const pty = Math.floor((playerRef.current.y + TILE_SIZE / 2) / TILE_SIZE);
         if (isInCasinoExit(ptx, pty)) {
           switchToOverworld();
+        }
+        // Bouncer blocks VIP zone at the top
+        if (isInVipZone(ptx, pty) && !dialogueRef.current.active) {
+          // Push player back down
+          playerRef.current.y = 3 * TILE_SIZE;
+          dialogueRef.current = { active: true, npc: {
+            x: playerRef.current.x,
+            y: playerRef.current.y - 40,
+            name: "Bouncer Kaz",
+            dialogue: [
+              "Hold it right there.",
+              "The upper floor is for high rollers only.",
+              `You need 5000 points. You have ${playerMoney}.`,
+              "Go win some games and come back when you're worthy.",
+            ],
+            color: "#2c3e50",
+            hairColor: "#1a1a1a",
+          }, line: 0 };
         }
       }
 
