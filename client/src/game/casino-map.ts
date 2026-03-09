@@ -140,14 +140,9 @@ export const casinoNpcs: NPC[] = [
   },
   {
     x: 12 * 32 + 8,
-    y: 1 * 32 + 8,
+    y: 2 * 32 + 8,
     name: "Bouncer Kaz",
-    dialogue: [
-      "Hold it right there.",
-      "The upper floor is for high rollers only.",
-      "You need at least 5000 points to get past me.",
-      "Go win some games and come back when you're worthy.",
-    ],
+    dialogue: ["..."],
     color: "#2c3e50",
     hairColor: "#1a1a1a",
     icon: "🚫",

@@ -52,6 +52,12 @@ export function renderGame(
   ctx.fillStyle = scene === "casino" ? "#0a0812" : "#1a3a2a";
   ctx.fillRect(0, 0, canvasW, canvasH);
 
+  // For small maps (casino), center the map if it's smaller than the viewport
+  const mapPxW = activeW * TILE_SIZE;
+  const mapPxH = activeH * TILE_SIZE;
+  const offsetX = mapPxW < canvasW ? Math.round((canvasW - mapPxW) / 2) : 0;
+  const offsetY = mapPxH < canvasH ? Math.round((canvasH - mapPxH) / 2) : 0;
+
   // Calculate visible tile range
   const startTX = Math.max(0, Math.floor(camX / TILE_SIZE) - 1);
   const startTY = Math.max(0, Math.floor(camY / TILE_SIZE) - 1);
@@ -59,7 +65,7 @@ export function renderGame(
   const endTY = Math.min(activeH, Math.ceil((camY + canvasH) / TILE_SIZE) + 1);
 
   ctx.save();
-  ctx.translate(-Math.round(camX), -Math.round(camY));
+  ctx.translate(offsetX - Math.round(camX), offsetY - Math.round(camY));
 
   // Draw tiles
   for (let ty = startTY; ty < endTY; ty++) {
@@ -254,34 +260,68 @@ function drawCasinoInteriorLabel(ctx: CanvasRenderingContext2D) {
 function drawNPC(ctx: CanvasRenderingContext2D, npc: NPC, player: Player) {
   const px = Math.round(npc.x);
   const py = Math.round(npc.y);
+  const isBouncer = npc.name === "Bouncer Kaz";
 
-  // Shadow
-  ctx.fillStyle = "rgba(0,0,0,0.2)";
-  ctx.beginPath();
-  ctx.ellipse(px + 16, py + 30, 10, 4, 0, 0, Math.PI * 2);
-  ctx.fill();
+  if (isBouncer) {
+    // Draw bouncer bigger and more imposing
+    // Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.beginPath();
+    ctx.ellipse(px + 16, py + 38, 14, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Legs
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(px + 4, py + 28, 10, 12);
+    ctx.fillRect(px + 18, py + 28, 10, 12);
+    // Body (wide)
+    ctx.fillStyle = npc.color;
+    ctx.fillRect(px + 0, py + 8, 32, 22);
+    // Suit lapels
+    ctx.fillStyle = "#1a1a2e";
+    ctx.fillRect(px + 14, py + 8, 4, 22);
+    // Head
+    ctx.fillStyle = "#d4a574";
+    ctx.fillRect(px + 6, py - 6, 20, 16);
+    // Hair (buzz cut)
+    ctx.fillStyle = npc.hairColor;
+    ctx.fillRect(px + 5, py - 8, 22, 6);
+    // Sunglasses
+    ctx.fillStyle = "#0a0a0a";
+    ctx.fillRect(px + 8, py - 1, 7, 4);
+    ctx.fillRect(px + 17, py - 1, 7, 4);
+    ctx.fillRect(px + 15, py, 2, 2);
+    // Mouth (stern)
+    ctx.fillStyle = "#8b6b4a";
+    ctx.fillRect(px + 12, py + 6, 8, 2);
+  } else {
+    // Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.2)";
+    ctx.beginPath();
+    ctx.ellipse(px + 16, py + 30, 10, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-  // Body
-  ctx.fillStyle = npc.color;
-  ctx.fillRect(px + 6, py + 12, 20, 14);
+    // Body
+    ctx.fillStyle = npc.color;
+    ctx.fillRect(px + 6, py + 12, 20, 14);
 
-  // Head
-  ctx.fillStyle = "#ffcc99";
-  ctx.fillRect(px + 8, py + 2, 16, 12);
+    // Head
+    ctx.fillStyle = "#ffcc99";
+    ctx.fillRect(px + 8, py + 2, 16, 12);
 
-  // Hair
-  ctx.fillStyle = npc.hairColor;
-  ctx.fillRect(px + 6, py + 0, 20, 6);
+    // Hair
+    ctx.fillStyle = npc.hairColor;
+    ctx.fillRect(px + 6, py + 0, 20, 6);
 
-  // Eyes
-  ctx.fillStyle = "#2d1b4e";
-  ctx.fillRect(px + 10, py + 7, 3, 3);
-  ctx.fillRect(px + 19, py + 7, 3, 3);
+    // Eyes
+    ctx.fillStyle = "#2d1b4e";
+    ctx.fillRect(px + 10, py + 7, 3, 3);
+    ctx.fillRect(px + 19, py + 7, 3, 3);
 
-  // Legs
-  ctx.fillStyle = "#4a3728";
-  ctx.fillRect(px + 8, py + 24, 6, 8);
-  ctx.fillRect(px + 18, py + 24, 6, 8);
+    // Legs
+    ctx.fillStyle = "#4a3728";
+    ctx.fillRect(px + 8, py + 24, 6, 8);
+    ctx.fillRect(px + 18, py + 24, 6, 8);
+  }
 
   // Icon above head
   if (npc.icon) {
@@ -384,12 +424,12 @@ function drawUI(
 
   // Controls overlay (top left) — hide during intro
   if (!introOverlay) {
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    ctx.fillRect(10, 10, 160, 28);
-    ctx.font = "11px 'Courier New', monospace";
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(10, 10, 300, 44);
+    ctx.font = "bold 20px 'Courier New', monospace";
     ctx.fillStyle = "#8ecae6";
     ctx.textAlign = "left";
-    ctx.fillText("WASD: Move  E: Interact", 18, 28);
+    ctx.fillText("WASD: Move  E: Interact", 20, 38);
   }
 
   // Proximity prompt for interactable tiles

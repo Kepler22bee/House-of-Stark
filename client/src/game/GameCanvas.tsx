@@ -225,6 +225,8 @@ export default function GameCanvas() {
         Math.pow(player.x - npc.x, 2) + Math.pow(player.y - npc.y, 2)
       );
       if (dist < 60) {
+        // Bouncer Kaz can't be talked to directly — only triggers from stairs
+        if (npc.name === "Bouncer Kaz") continue;
         dialogueRef.current = { active: true, npc, line: 0 };
         return;
       }
@@ -249,7 +251,7 @@ export default function GameCanvas() {
         return;
       }
 
-      // Casino stairs — blocked by points requirement
+      // Casino stairs — bouncer blocks you
       if (tile === TileType.CASINO_STAIRS && sceneRef.current === "casino") {
         if (playerMoney >= 5000) {
           tileDialogueRef.current = { active: true, lines: [
@@ -257,10 +259,19 @@ export default function GameCanvas() {
             "The upper floor awaits... (Coming Soon)",
           ], line: 0 };
         } else {
-          tileDialogueRef.current = { active: true, lines: [
-            `You need 5000 points to go upstairs. You have ${playerMoney}.`,
-            "Keep playing and come back when you've earned enough!",
-          ], line: 0 };
+          dialogueRef.current = { active: true, npc: {
+            x: playerRef.current.x,
+            y: playerRef.current.y - 40,
+            name: "Bouncer Kaz",
+            dialogue: [
+              "Hold it right there.",
+              "The upper floor is for high rollers only.",
+              `You need 5000 points. You have ${playerMoney}.`,
+              "Go win some games and come back when you're worthy.",
+            ],
+            color: "#2c3e50",
+            hairColor: "#1a1a1a",
+          }, line: 0 };
         }
         return;
       }
