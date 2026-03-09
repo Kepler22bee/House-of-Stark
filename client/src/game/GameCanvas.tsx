@@ -50,38 +50,22 @@ export interface ShopPower {
 }
 
 export const SHOP_POWERS: ShopPower[] = [
-  { name: "Lucky Streak", icon: "🍀", description: "Boost coin toss odds by 5%", cost: 500 },
-  { name: "Market Eye", icon: "👁", description: "Reveal price trends early", cost: 1200 },
-  { name: "Double Down", icon: "⚡", description: "2x payout on next win", cost: 800 },
-  { name: "Shield Wall", icon: "🛡", description: "Prevent one loss per round", cost: 2000 },
+  { name: "Neural Boost", icon: "🧠", description: "Upgrade Clanker's prediction accuracy", cost: 500 },
+  { name: "Memory Bank", icon: "💾", description: "Clanker remembers more game history", cost: 800 },
+  { name: "Turbo Core", icon: "⚡", description: "Faster AI responses and analysis", cost: 1200 },
+  { name: "Quantum Chip", icon: "🔮", description: "Unlock advanced pattern detection", cost: 2000 },
 ];
 
 export let playerMoney = 3500;
 
 export const MOCK_AGENTS: AgentData[] = [
   {
-    name: "Convlios",
-    bodyColor: "#e89830",
-    hairColor: "#6b3a1f",
-    skinColor: "#ffcc99",
+    name: "Clanker",
+    bodyColor: "#d4a030",
+    hairColor: "#6a6a6a",
+    skinColor: "#88ccff",
     status: "active",
-    abilities: ["Lenebferenters", "Denter Lerge", "Dehamor Lecipettions", "Moureal Reade"],
-  },
-  {
-    name: "Draknor",
-    bodyColor: "#3a6fa8",
-    hairColor: "#1a1a2e",
-    skinColor: "#e8c49a",
-    status: "idle",
-    abilities: ["Market Watch", "Price Analysis"],
-  },
-  {
-    name: "Serphina",
-    bodyColor: "#8b2e6b",
-    hairColor: "#c0392b",
-    skinColor: "#fdd9b5",
-    status: "active",
-    abilities: ["Coin Flip Auto", "Yield Optimizer", "Risk Assessment"],
+    abilities: ["Bet Advisor", "Pattern Recognition", "Risk Analysis", "Auto-Play Mode"],
   },
 ];
 

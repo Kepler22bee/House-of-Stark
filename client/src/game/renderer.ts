@@ -881,8 +881,8 @@ function drawAgentMenu(
   const tabY = panelY;
   const tabH = 38;
   const tabs: { label: string; key: AgentMenuState["tab"] }[] = [
-    { label: "Agents", key: "agents" },
-    { label: "Shop", key: "shop" },
+    { label: "Clanker", key: "agents" },
+    { label: "Upgrades", key: "shop" },
   ];
   const tabW = (panelW - 60) / tabs.length;
 
@@ -962,7 +962,7 @@ function drawAgentMenu(
   ctx.textAlign = "center";
   const blinkAgent = Math.sin(Date.now() / 400) > 0;
   if (blinkAgent) {
-    ctx.fillText("B: Close    W/S: Navigate    Tab: Switch tabs", canvasW / 2, panelY + panelH - 8);
+    ctx.fillText("CLANKER HOUSE — B: Close    Tab: Switch tabs", canvasW / 2, panelY + panelH - 8);
   }
 
   ctx.restore();
@@ -1056,7 +1056,7 @@ function drawAgentsContent(
     ctx.font = "bold 13px 'Courier New', monospace";
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
-    ctx.fillText("Hire", btnX + btnW / 2, btnY + 19);
+    ctx.fillText("Active", btnX + btnW / 2, btnY + 19);
 
     // Abilities box — white/cream with clean border
     if (agent.abilities.length > 0) {
@@ -1118,7 +1118,7 @@ function drawShopContent(
   ctx.font = "bold 14px 'Courier New', monospace";
   ctx.fillStyle = "#5a4820";
   ctx.textAlign = "left";
-  ctx.fillText("Money:", contentX + 12, moneyY + 21);
+  ctx.fillText("Credits:", contentX + 12, moneyY + 21);
   ctx.fillStyle = "#8a6a10";
   ctx.textAlign = "right";
   ctx.fillText(`${playerMoney} coins`, contentX + contentW - 12, moneyY + 21);
