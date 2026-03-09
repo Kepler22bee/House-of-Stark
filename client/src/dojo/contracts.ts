@@ -10,16 +10,7 @@ import {
 const DEFAULT_BET_LOW = "0x38D7EA4C68000";
 const DEFAULT_BET_HIGH = "0x0";
 
-// Katana: skip fee estimation and tip calculation, use fixed resource bounds
-const KATANA_TX_OPTS = {
-  skipValidate: true,
-  tip: 0,
-  resourceBounds: {
-    l1_gas: { max_amount: BigInt(1000000), max_price_per_unit: BigInt(100000000000) },
-    l2_gas: { max_amount: BigInt(1000000000), max_price_per_unit: BigInt(100000000000) },
-    l1_data_gas: { max_amount: BigInt(1000000), max_price_per_unit: BigInt(100000000000) },
-  },
-};
+// No special tx opts needed — Cartridge Controller handles gas
 
 // ERC721 Transfer event selector — keccak("Transfer")
 const TRANSFER_SELECTOR = hash.getSelectorFromName("Transfer");
@@ -46,7 +37,6 @@ export async function approveBet(account: AccountInterface) {
           DEFAULT_BET_HIGH,    // amount.high
         ],
       },
-      KATANA_TX_OPTS,
     );
     console.log("[approveBet] SUCCESS tx:", res.transaction_hash);
     return res;
@@ -71,7 +61,6 @@ export async function placeBet(account: AccountInterface, choice: number) {
         "1",               // player_name: Option::None (variant tag 1)
       ],
     },
-    KATANA_TX_OPTS,
   );
 }
 
@@ -146,7 +135,6 @@ export async function flipCoin(
         ],
       },
     ],
-    KATANA_TX_OPTS,
   );
 }
 
@@ -160,7 +148,6 @@ export async function settleBet(account: AccountInterface, tokenId: number) {
       entrypoint: "settle",
       calldata: [tokenId.toString()], // token_id: u64
     },
-    KATANA_TX_OPTS,
   );
 }
 

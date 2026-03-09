@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { BURNER_ADDRESS } from "../../dojo/config";
+import { useAccount, useConnect, useDisconnect } from "@starknet-react/core";
 
 const GameCanvas = dynamic(() => import("../../game/GameCanvas"), {
   ssr: false,
@@ -14,7 +14,10 @@ const GameCanvas = dynamic(() => import("../../game/GameCanvas"), {
 });
 
 export default function GamePage() {
-  const shortAddr = `${BURNER_ADDRESS.slice(0, 6)}...${BURNER_ADDRESS.slice(-4)}`;
+  const { address } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+  const shortAddr = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : null;
 
   return (
     <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: "#0a0a0a" }}>
@@ -37,9 +40,17 @@ export default function GamePage() {
           color: "#fdd835",
           letterSpacing: 1,
           boxShadow: "0 0 20px rgba(253,216,53,0.3)",
+          cursor: "pointer",
+        }}
+        onClick={() => {
+          if (address) {
+            disconnect();
+          } else {
+            connect({ connector: connectors[0] });
+          }
         }}
       >
-        {shortAddr}
+        {shortAddr ?? "Connect Wallet"}
       </div>
     </div>
   );

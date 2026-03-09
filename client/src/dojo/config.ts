@@ -1,4 +1,4 @@
-export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL ?? "http://localhost:5050";
+export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL ?? "https://api.cartridge.gg/x/starknet/sepolia";
 export const TORII_URL = process.env.NEXT_PUBLIC_TORII_URL ?? "http://localhost:8080";
 
 // From manifest_dev.json — update after each sozo migrate
@@ -20,10 +20,8 @@ export const FEE_TOKEN_ADDRESS =
   process.env.NEXT_PUBLIC_FEE_TOKEN_ADDRESS ??
   "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
 
-// Katana predeployed burner account
+// Legacy burner (kept for reference, not used with Cartridge Controller)
 export const BURNER_ADDRESS =
-  process.env.NEXT_PUBLIC_BURNER_ADDRESS ??
-  "0x127fd5f1fe78a71f8bcd1fec63e3fe2f0486b6ecd5c86a0466c3a21fa5cfcec";
+  process.env.NEXT_PUBLIC_BURNER_ADDRESS ?? "0x0";
 export const BURNER_PRIVATE_KEY =
-  process.env.NEXT_PUBLIC_BURNER_PRIVATE_KEY ??
-  "0xc5b2fcab997346f3ea1c00b002ecf6f382c5f9c9659a3894eb783c5320f912";
+  process.env.NEXT_PUBLIC_BURNER_PRIVATE_KEY ?? "0x0";

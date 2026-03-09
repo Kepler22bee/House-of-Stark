@@ -1,6 +1,7 @@
 "use client";
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Account, RpcProvider } from "starknet";
+import { RpcProvider } from "starknet";
+import { useAccount } from "@starknet-react/core";
 import {
   approveBet,
   placeBet,
@@ -10,7 +11,7 @@ import {
   readGameResult,
   GameResult,
 } from "../../dojo/contracts";
-import { RPC_URL, BURNER_ADDRESS, BURNER_PRIVATE_KEY } from "../../dojo/config";
+import { RPC_URL } from "../../dojo/config";
 
 interface CoinTossGameProps {
   onClose: () => void;
@@ -90,17 +91,10 @@ const KEYFRAMES = `
 }
 `;
 
-// Burner account for local katana dev
 const rpcProvider = new RpcProvider({ nodeUrl: RPC_URL });
-const burnerAccount = new Account({
-  provider: rpcProvider,
-  address: BURNER_ADDRESS,
-  signer: BURNER_PRIVATE_KEY,
-});
 
 export default function CoinTossGame({ onClose, initialChoice, autoFlip }: CoinTossGameProps) {
-  const account = burnerAccount;
-  const address = BURNER_ADDRESS;
+  const { account, address } = useAccount();
 
   const [choice, setChoice] = useState<number | null>(initialChoice ?? null);
   const autoFlipDone = useRef(false);
@@ -227,7 +221,7 @@ export default function CoinTossGame({ onClose, initialChoice, autoFlip }: CoinT
   }, [autoFlip, initialChoice, step.id, handleFlip]);
 
   const isProcessing = STEPS_ORDER.includes(step.id);
-  const shortAddr = `${address.slice(0, 6)}...${address.slice(-4)}`;
+  const shortAddr = address ? `${address.slice(0, 6)}...${address.slice(-4)}` : "Not connected";
 
   return (
     <div
@@ -363,7 +357,7 @@ export default function CoinTossGame({ onClose, initialChoice, autoFlip }: CoinT
               >
                 {shortAddr}
               </span>
-              <span style={{ color: "#4caf50", fontSize: 9, marginLeft: 8 }}>BURNER</span>
+              <span style={{ color: "#4caf50", fontSize: 9, marginLeft: 8 }}>CONTROLLER</span>
             </div>
 
             {/* ── IDLE: Choose side + flip ─────────────── */}
