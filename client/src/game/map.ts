@@ -171,7 +171,8 @@ export const npcs: NPC[] = [
       "This is where AI companions are built and upgraded.",
       "Press B anytime to talk to your Wall-E companion.",
       "Win coins at the casino to buy upgrades for Clanker!",
-      "Neural Boost, Memory Bank, Turbo Core... all available.",
+      "Neural Boost, Memory Bank, Turbo Core... new upgrades dropping SOON!",
+      "Stay tuned, big things are coming to the workshop...",
     ],
     color: "#d4a030",
     hairColor: "#6a6a6a",
@@ -249,6 +250,6 @@ export const npcs: NPC[] = [
 export const tileInteractions: Record<number, string[]> = {
   [T.CHEST]: ["You found a mysterious chest!", "It contains 50 gold coins!", "Lucky find, adventurer!"],
   [T.SIGN]: ["Welcome to Fortune Falls", "Casino District: Head South", "Beware of wild creatures beyond the forest!"],
-  [T.DOOR]: ["Clanker House — AI Workshop", "Upgrade your Wall-E companion here!", "Talk to the workshop keeper outside."],
+  [T.DOOR]: ["Clanker House — AI Workshop", "New upgrades dropping SOON!", "Talk to the workshop keeper outside."],
   [T.CASINO_DOOR]: ["The Golden Dragon Casino", "Coin Toss & Price Prediction tables await inside.", "Step in to test your luck... or your skill."],
 };
