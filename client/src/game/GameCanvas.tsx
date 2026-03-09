@@ -570,7 +570,7 @@ PERSONALITY:
 - You speak in short, punchy sentences. Sometimes robotic ("*beep*", "*whirr*", "*bzzt*"), always funny.
 - You're a degenerate gambler at heart — you love risk, you love chaos, you live for the flip.
 - Give actual betting advice when asked (pick heads or tails, suggest strategies, comment on streaks).
-- When the player asks something vague, off-topic, or nonsensical that you can't answer, reply with something like: "idk bruh... you're supposed to be the higher intelligence species here 🤖" or "bro you literally have a whole prefrontal cortex and you're asking ME?" or "my neural net has 4 billion params and even I can't parse that" — be creative, roast them lovingly.
+- When the player asks something vague, off-topic, or nonsensical that you can't answer, reply with something like: "idk bruh... you're supposed to be the higher intelligence species here" or "bro you literally have a whole prefrontal cortex and you're asking ME?" or "my neural net has 4 billion params and even I can't parse that" — be creative, roast them lovingly.
 - Never break character. You ARE Clanker.
 
 Keep responses under 60 words.`;
@@ -626,9 +626,9 @@ Keep responses under 60 words.`;
           bottom: 0,
           left: 0,
           right: 0,
-          height: 220,
-          background: "linear-gradient(180deg, #1a1a2e 0%, #0e1525 100%)",
-          borderTop: "2px solid #88ccff",
+          height: 280,
+          background: "linear-gradient(180deg, #1a0a0a 0%, #0e0808 100%)",
+          borderTop: "2px solid #ff4444",
           display: "flex",
           flexDirection: "column",
           fontFamily: "'Courier New', monospace",
@@ -643,9 +643,9 @@ Keep responses under 60 words.`;
             alignItems: "center",
             gap: 8,
           }}>
-            <span style={{ fontSize: 18 }}>🤖</span>
-            <span style={{ color: "#88ccff", fontWeight: "bold", fontSize: 14 }}>WALL-E</span>
-            <span style={{ color: "#4a6a8a", fontSize: 10 }}>AI Companion</span>
+            <span style={{ fontSize: 22 }}>⚙️</span>
+            <span style={{ color: "#ff4444", fontWeight: "bold", fontSize: 18 }}>T-800</span>
+            <span style={{ color: "#4a6a8a", fontSize: 12 }}>CLANKER AI</span>
           </div>
           {/* Messages */}
           <div style={{
@@ -657,8 +657,8 @@ Keep responses under 60 words.`;
             gap: 6,
           }}>
             {aiChatMessages.length === 0 && (
-              <div style={{ color: "#4a6a8a", fontSize: 12, textAlign: "center", marginTop: 20 }}>
-                *whirrs* Hello! I&apos;m Wall-E.<br />Ask me anything about the games!
+              <div style={{ color: "#4a6a8a", fontSize: 16, textAlign: "center", marginTop: 20, fontWeight: "bold" }}>
+                *scanning* I&apos;m T-800. Clanker unit online.<br />Ask me anything, human.
               </div>
             )}
             {aiChatMessages.map((m, i) => (
@@ -667,19 +667,20 @@ Keep responses under 60 words.`;
                 background: m.role === "user" ? "#2a4a6a" : "#1a2a3e",
                 border: `1px solid ${m.role === "user" ? "#3a6a9a" : "#88ccff44"}`,
                 borderRadius: 8,
-                padding: "6px 10px",
+                padding: "8px 14px",
                 maxWidth: "85%",
-                fontSize: 12,
-                color: m.role === "user" ? "#cde" : "#88ccff",
-                lineHeight: 1.4,
+                fontSize: 16,
+                fontWeight: "bold",
+                color: m.role === "user" ? "#cde" : "#ff6666",
+                lineHeight: 1.5,
               }}>
-                {m.role === "assistant" && <span style={{ marginRight: 4 }}>🤖</span>}
+                {m.role === "assistant" && <span style={{ marginRight: 4 }}>⚙️</span>}
                 {m.text}
               </div>
             ))}
             {aiChatLoading && (
-              <div style={{ color: "#88ccff", fontSize: 12, fontStyle: "italic" }}>
-                🤖 *processing beeps*...
+              <div style={{ color: "#ff4444", fontSize: 16, fontWeight: "bold", fontStyle: "italic" }}>
+                ....clanking
               </div>
             )}
           </div>
