@@ -254,9 +254,9 @@ export default function GameCanvas() {
         return;
       }
 
-      // Clanker Warehouse — left of casino (tiles 31-35, row 33-34 door area)
-      const whX = 33 * TILE_SIZE;
-      const whY = 33 * TILE_SIZE;
+      // Clanker Warehouse — blue house upper-left of casino
+      const whX = 27 * TILE_SIZE;
+      const whY = 26 * TILE_SIZE;
       const whDist = Math.sqrt(
         Math.pow(player.x - whX, 2) + Math.pow(player.y - whY, 2)
       );

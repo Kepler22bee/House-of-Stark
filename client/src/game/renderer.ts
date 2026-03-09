@@ -312,9 +312,9 @@ function drawClankerHouseSign(ctx: CanvasRenderingContext2D) {
 
 // Clanker Warehouse sign — to the left of the casino (same style as casino sign)
 function drawClankerWarehouseSign(ctx: CanvasRenderingContext2D) {
-  // Position to the left of casino (casino is at x:37, so warehouse around x:31-35)
-  const cx = 33 * TILE_SIZE + TILE_SIZE / 2;
-  const signY = 28 * TILE_SIZE;
+  // Position on the blue house upper-left of casino
+  const cx = 27 * TILE_SIZE;
+  const signY = 22 * TILE_SIZE;
   const signW = 5 * TILE_SIZE;
   const signH = TILE_SIZE * 1.2;
 
