@@ -5,6 +5,9 @@ import { renderGame, SceneData } from "./renderer";
 import { npcs, NPC, gameMap, MAP_WIDTH, MAP_HEIGHT, tileInteractions } from "./map";
 import { casinoMap, CASINO_MAP_WIDTH, CASINO_MAP_HEIGHT, casinoNpcs, casinoTileInteractions } from "./casino-map";
 import { TILE_INFO, TileType, TILE_SIZE } from "./tiles";
+import { loadAllSprites } from "./sprites";
+import { loadTiledMap, CASINO_BUILDING } from "./tiledMap";
+import { loadTiledCasino, casinoTiledReady, CASINO_MAP_W, CASINO_MAP_H, CASINO_EXIT, isInCasinoExit } from "./tiledCasino";
 
 interface DialogueState {
   active: boolean;
@@ -133,6 +136,9 @@ export default function GameCanvas() {
 
   const getActiveMap = useCallback((): { map: number[][]; width: number; height: number } => {
     if (sceneRef.current === "casino") {
+      if (casinoTiledReady()) {
+        return { map: casinoMap, width: CASINO_MAP_W, height: CASINO_MAP_H };
+      }
       return { map: casinoMap, width: CASINO_MAP_WIDTH, height: CASINO_MAP_HEIGHT };
     }
     return { map: gameMap, width: MAP_WIDTH, height: MAP_HEIGHT };
@@ -147,14 +153,12 @@ export default function GameCanvas() {
   }, []);
 
   const switchToCasino = useCallback(() => {
-    // Save overworld position
     overworldPosRef.current = { x: playerRef.current.x, y: playerRef.current.y };
-    // Move player to casino entrance (near exit door at col 29, row 35)
-    playerRef.current.x = 29 * TILE_SIZE;
-    playerRef.current.y = 35 * TILE_SIZE;
+    // Spawn at bottom of carpet runner, just above exit zone
+    playerRef.current.x = CASINO_EXIT.x * TILE_SIZE;
+    playerRef.current.y = (CASINO_EXIT.y - 2) * TILE_SIZE;
     playerRef.current.direction = "up";
     sceneRef.current = "casino";
-    // Show casino intro tutorial
     casinoIntroRef.current = { active: true, line: 0, dismissed: false };
   }, []);
 
@@ -215,6 +219,29 @@ export default function GameCanvas() {
       return;
     }
 
+    // Casino exit — check if player is in the exit zone
+    if (sceneRef.current === "casino" && casinoTiledReady()) {
+      const ptx = Math.floor((player.x + TILE_SIZE / 2) / TILE_SIZE);
+      const pty = Math.floor((player.y + TILE_SIZE / 2) / TILE_SIZE);
+      if (isInCasinoExit(ptx, pty)) {
+        switchToOverworld();
+        return;
+      }
+    }
+
+    // Casino door entrance — check if player is near the door tile on overworld
+    if (sceneRef.current === "overworld") {
+      const doorPx = CASINO_BUILDING.doorX * TILE_SIZE;
+      const doorPy = CASINO_BUILDING.doorY * TILE_SIZE;
+      const dist = Math.sqrt(
+        Math.pow(player.x - doorPx, 2) + Math.pow(player.y - doorPy, 2)
+      );
+      if (dist < 60) {
+        switchToCasino();
+        return;
+      }
+    }
+
     const activeNpcs = getActiveNpcs();
     for (const npc of activeNpcs) {
       const dist = Math.sqrt(
@@ -257,6 +284,10 @@ export default function GameCanvas() {
   }, [getActiveNpcs, getActiveMap, getActiveInteractions, switchToCasino, switchToOverworld]);
 
   useEffect(() => {
+    loadAllSprites();
+    loadTiledMap();
+    loadTiledCasino();
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -378,7 +409,8 @@ export default function GameCanvas() {
       }
 
       const { map, width, height } = getActiveMap();
-      const mapData: MapData = { map, width, height };
+      const currentScene = sceneRef.current;
+      const mapData: MapData = { map, width, height, scene: currentScene };
 
       // Don't move during any dialogue/intro
       const blocked = introRef.current.active || casinoIntroRef.current.active || dialogueRef.current.active || tileDialogueRef.current.active || gameScreenRef.current.active || agentMenuRef.current.active;

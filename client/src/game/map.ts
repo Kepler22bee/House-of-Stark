@@ -1,4 +1,4 @@
-import { TileType as T } from "./tiles";
+import { TileType as T, TILE_SIZE } from "./tiles";
 
 const G = T.GRASS;
 const P = T.PATH;
@@ -44,9 +44,9 @@ const cb = T.CASINO_BRICK;
 const sl = T.STREET_LAMP;
 const sw = T.SIDEWALK;
 
-// 60 wide x 40 tall map
-export const MAP_WIDTH = 60;
-export const MAP_HEIGHT = 40;
+// 50 wide x 50 tall map (matches Tiled overworld.json)
+export const MAP_WIDTH = 50;
+export const MAP_HEIGHT = 50;
 
 export const gameMap: number[][] = [
 // 0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59
@@ -56,27 +56,27 @@ export const gameMap: number[][] = [
 [ TT, t,  TT, TT, d,  d,  d,  d,  d,  d,  d,  st, st, d,  w,  w,  w,  w,  w,  w,  P,  P,  w,  w,  w,  w,  d,  d,  d,  f,  b,  d,  S,  S,  d,  d,  we, W,  W,  W,  W,  W,  W,  W,  we, S,  S,  d,  d,  f,  d,  d,  d,  TT, TT, TT, TT, TT, TT, TT ],
 [ t,  TT, TT, d,  d,  d,  la, d,  d,  d,  d,  P,  P,  P,  w,  D,  w,  w,  w,  D,  P,  P,  w,  D,  w,  w,  P,  P,  P,  P,  d,  d,  d,  d,  d,  d,  S,  we, W,  W,  W,  W,  W,  we, S,  S,  d,  d,  d,  d,  d,  d,  d,  d,  TT, TT, t,  TT, TT, TT ],
 [ TT, TT, d,  d,  d,  d,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  d,  d,  d,  d,  S,  we, we, we, we, we, S,  S,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, TT, TT, TT, TT ],
-[ TT, d,  d,  f,  d,  d,  P,  d,  d,  d,  d,  d,  si, P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  S,  S,  S,  S,  S,  d,  d,  d,  d,  la, d,  d,  d,  d,  d,  d,  d,  d,  TT, TT, TT, TT ],
-[ d,  d,  d,  d,  d,  d,  P,  d,  d,  be, d,  d,  d,  d,  P,  d,  d,  la, d,  d,  d,  d,  la, d,  d,  P,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  R,  d,  d,  d,  d,  d,  TT, TT, TT ],
-[ d,  d,  mu, d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  P,  d,  d,  TT, TT, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, TT ],
-[ d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  tg, tg, d,  P,  P,  TT, TT, t,  TT, d,  d,  d,  rr, rr, rr, rr, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT ],
-[ F,  F,  F,  F,  F,  F,  P,  F,  F,  F,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  tg, tg, tg, d,  d,  TT, TT, TT, TT, d,  d,  d,  d,  rr, rr, rr, rr, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, d,  d,  d  ],
+[ TT, d,  d,  f,  d,  d,  P,  d,  d,  d,  d,  d,  si, P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  f,  d,  b,  d,  P,  d,  d,  d,  d,  d,  S,  S,  S,  S,  S,  d,  d,  d,  d,  la, d,  d,  d,  d,  d,  d,  d,  d,  TT, TT, TT, TT ],
+[ d,  d,  d,  d,  d,  d,  P,  d,  d,  be, d,  d,  d,  d,  P,  d,  R,  la, d,  f,  b,  d,  la, d,  R,  P,  d,  mu, d,  d,  f,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  R,  d,  d,  d,  d,  d,  TT, TT, TT ],
+[ d,  d,  mu, d,  d,  d,  P,  d,  d,  d,  tg, d,  d,  d,  P,  d,  b,  d,  d,  tg, d,  mu, d,  d,  b,  P,  d,  d,  la, d,  d,  d,  P,  d,  d,  TT, TT, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, TT ],
+[ d,  d,  d,  d,  d,  d,  P,  d,  R,  d,  d,  d,  d,  d,  P,  d,  f,  d,  tg, d,  R,  d,  d,  f,  d,  P,  d,  d,  d,  tg, tg, d,  P,  P,  TT, TT, t,  TT, d,  d,  d,  rr, rr, rr, rr, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT ],
+[ F,  F,  F,  F,  F,  F,  P,  F,  F,  F,  d,  d,  be, d,  P,  d,  mu, d,  b,  d,  d,  d,  f,  d,  d,  P,  d,  d,  tg, tg, tg, d,  d,  TT, TT, TT, TT, d,  d,  d,  d,  rr, rr, rr, rr, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, d,  d,  d  ],
 [ G,  G,  G,  G,  f,  G,  P,  G,  G,  G,  d,  d,  d,  d,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  d,  d,  d,  tg, d,  d,  d,  d,  TT, d,  d,  d,  d,  d,  d,  w,  w,  wi, w,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
-[ G,  G,  b,  G,  G,  G,  P,  G,  G,  G,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  P,  P,  w,  D,  w,  w,  P,  P,  P,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
-[ G,  G,  G,  G,  G,  G,  P,  G,  G,  G,  la, d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  w,  w,  w,  w,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
+[ G,  G,  b,  G,  G,  G,  P,  G,  G,  G,  d,  d,  f,  d,  d,  d,  la, d,  P,  d,  d,  be, d,  d,  d,  d,  d,  R,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  P,  P,  w,  D,  w,  w,  P,  P,  P,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
+[ G,  G,  G,  G,  G,  G,  P,  G,  G,  G,  la, d,  d,  b,  d,  mu, d,  d,  P,  d,  tg, d,  d,  d,  d,  d,  d,  d,  d,  tg, d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  w,  w,  w,  w,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
 [ G,  f,  G,  G,  G,  G,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
-[ G,  G,  G,  G,  G,  G,  P,  G,  G,  G,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  be, d,  d,  d,  d,  P,  d,  d,  d,  d,  TT, TT, d,  d,  d,  d,  d  ],
-[ G,  G,  G,  G,  G,  G,  P,  G,  G,  G,  G,  d,  ch, d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  d,  d,  d,  TT, TT, t,  TT, d,  d,  d,  d  ],
-[ G,  G,  G,  G,  G,  G,  P,  P,  P,  P,  G,  d,  d,  d,  d,  rr, rr, rr, rr, rr, d,  d,  F,  F,  F,  F,  P,  F,  F,  F,  F,  P,  d,  d,  d,  d,  TT, TT, TT, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, TT, TT, TT, TT, d,  d,  d,  d  ],
+[ G,  G,  G,  G,  G,  G,  P,  G,  G,  G,  d,  f,  d,  d,  d,  d,  b,  d,  P,  d,  d,  d,  R,  d,  d,  d,  P,  d,  f,  d,  d,  P,  d,  d,  mu, d,  d,  d,  P,  d,  d,  d,  d,  be, d,  d,  d,  d,  P,  d,  d,  d,  d,  TT, TT, d,  d,  d,  d,  d  ],
+[ G,  G,  G,  G,  G,  G,  P,  G,  G,  G,  G,  d,  ch, d,  d,  tg, d,  d,  P,  d,  d,  f,  d,  b,  d,  d,  P,  d,  d,  la, d,  P,  d,  tg, d,  d,  d,  d,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  P,  d,  d,  d,  TT, TT, t,  TT, d,  d,  d,  d  ],
+[ G,  G,  G,  G,  G,  G,  P,  P,  P,  P,  G,  d,  d,  d,  d,  rr, rr, rr, rr, rr, d,  d,  F,  F,  F,  F,  P,  F,  F,  F,  F,  P,  d,  d,  d,  d,  TT, TT, TT, d,  d,  R,  d,  f,  d,  b,  d,  d,  d,  d,  d,  TT, TT, TT, TT, TT, d,  d,  d,  d  ],
 [ TT, TT, d,  G,  G,  G,  G,  G,  G,  P,  G,  d,  d,  d,  d,  rr, rr, rr, rr, rr, d,  d,  F,  C,  C,  C,  P,  C,  C,  C,  F,  d,  d,  d,  TT, TT, t,  TT, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, TT, TT, d,  d,  d,  d,  d  ],
 [ TT, TT, TT, d,  G,  G,  G,  G,  G,  P,  G,  G,  d,  d,  d,  w,  w,  wi, w,  w,  d,  d,  F,  C,  C,  C,  P,  C,  C,  C,  F,  d,  d,  d,  d,  TT, TT, TT, d,  d,  d,  d,  f,  b,  f,  d,  d,  d,  d,  d,  d,  d,  d,  TT, d,  d,  d,  d,  d,  d  ],
 [ TT, t,  TT, TT, d,  G,  G,  G,  G,  P,  P,  P,  P,  P,  P,  w,  D,  w,  D,  w,  P,  P,  F,  C,  C,  C,  P,  C,  C,  C,  F,  P,  P,  P,  d,  d,  TT, d,  d,  d,  d,  d,  b,  f,  b,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
 [ TT, TT, TT, d,  d,  G,  G,  G,  G,  G,  G,  d,  d,  d,  d,  w,  w,  w,  w,  w,  d,  d,  F,  C,  C,  C,  P,  C,  C,  C,  F,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  f,  b,  f,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
 [ TT, TT, d,  d,  d,  b,  G,  G,  G,  G,  G,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  F,  F,  F,  F,  F,  F,  F,  F,  F,  d,  d,  P,  d,  d,  d,  R,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  R,  d,  d,  d,  d  ],
 // Row 23 — path leading south + sidewalk area
-[ d,  d,  d,  d,  d,  d,  G,  f,  G,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  la, d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
+[ d,  d,  d,  d,  d,  d,  G,  f,  G,  d,  d,  d,  b,  d,  d,  la, d,  d,  P,  d,  d,  R,  d,  d,  f,  d,  d,  d,  mu, d,  d,  d,  d,  P,  d,  d,  tg, d,  d,  d,  d,  d,  b,  d,  f,  d,  d,  d,  d,  la, d,  d,  d,  d,  d,  d,  d,  d,  d,  d  ],
 // Row 24 — sidewalk begins around casino
-[ d,  d,  d,  d,  R,  d,  d,  d,  d,  d,  d,  sw, sw, sw, sw, sw, sw, sw, P,  sw, sw, sw, sw, sw, sw, sw, d,  d,  d,  d,  d,  d,  d,  P,  P,  P,  P,  P,  P,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, TT ],
+[ d,  d,  d,  d,  R,  d,  d,  d,  d,  d,  d,  sw, sw, sw, sw, sw, sw, sw, P,  sw, sw, sw, sw, sw, sw, sw, d,  d,  d,  d,  d,  d,  d,  P,  P,  P,  P,  P,  P,  P,  d,  d,  d,  f,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, TT ],
 // Row 25 — casino roof row 1 (top edge)
 [ d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  sw, sl, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, cr, sl, sw, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  si, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  TT, TT, TT ],
 // Row 26 — casino upper facade (dark grid windows)
@@ -96,7 +96,7 @@ export const gameMap: number[][] = [
 // Row 33 — bamboo + path continues
 [ TT, TT, TT, TT, TT, TT, TT, TT, d,  d,  d,  d,  ba, d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  ba, d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  ch, d,  d,  d,  d,  P,  d,  d,  TT, TT, TT, TT, TT, TT, TT, TT, TT, TT, TT ],
 // Row 34 — path fades into forest
-[ TT, TT, TT, TT, TT, TT, TT, TT, TT, d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  P,  d,  TT, TT, TT, TT, TT, TT, TT, TT, TT, TT, TT, TT ],
+[ TT, TT, TT, TT, TT, TT, TT, TT, TT, d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  d,  f,  d,  d,  b,  d,  d,  d,  d,  d,  d,  R,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  P,  d,  TT, TT, TT, TT, TT, TT, TT, TT, TT, TT, TT, TT ],
 // Row 35
 [ TT, TT, TT, TT, TT, TT, TT, TT, TT, TT, d,  d,  d,  R,  d,  d,  d,  d,  P,  P,  P,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  d,  P,  d,  TT, TT, TT, TT, TT, TT, TT, TT, TT, TT, TT, TT, TT ],
 // Row 36
@@ -121,8 +121,8 @@ export interface NPC {
 
 export const npcs: NPC[] = [
   {
-    x: 15 * 32 + 8,
-    y: 6 * 32 + 8,
+    x: 20 * TILE_SIZE + 8,
+    y: 8 * TILE_SIZE + 8,
     name: "Elder Sage",
     dialogue: [
       "Welcome to Pixel Village, young adventurer!",
@@ -135,8 +135,8 @@ export const npcs: NPC[] = [
     icon: "⭐",
   },
   {
-    x: 11 * 32 + 8,
-    y: 3 * 32 + 8,
+    x: 25 * TILE_SIZE + 8,
+    y: 8 * TILE_SIZE + 8,
     name: "Merchant Kai",
     dialogue: [
       "Welcome to Fortune Falls, newcomer!",
@@ -150,8 +150,8 @@ export const npcs: NPC[] = [
     icon: "🛒",
   },
   {
-    x: 23 * 32 + 8,
-    y: 6 * 32 + 8,
+    x: 30 * TILE_SIZE + 8,
+    y: 8 * TILE_SIZE + 8,
     name: "Healer Mira",
     dialogue: [
       "Oh, you look weary from your travels!",
@@ -163,8 +163,8 @@ export const npcs: NPC[] = [
     icon: "💚",
   },
   {
-    x: 17 * 32 + 8,
-    y: 20 * 32 + 8,
+    x: 22 * TILE_SIZE + 8,
+    y: 12 * TILE_SIZE + 8,
     name: "Farmer Hank",
     dialogue: [
       "These crops won't tend themselves!",
@@ -176,8 +176,8 @@ export const npcs: NPC[] = [
     icon: "🌾",
   },
   {
-    x: 26 * 32 + 8,
-    y: 14 * 32 + 8,
+    x: 35 * TILE_SIZE + 8,
+    y: 11 * TILE_SIZE + 8,
     name: "Guard Rex",
     dialogue: [
       "Halt! Oh, you're a friendly face.",
@@ -190,8 +190,8 @@ export const npcs: NPC[] = [
     icon: "⚔️",
   },
   {
-    x: 8 * 32 + 8,
-    y: 12 * 32 + 8,
+    x: 28 * TILE_SIZE + 8,
+    y: 12 * TILE_SIZE + 8,
     name: "Little Pip",
     dialogue: [
       "Hi hi! I'm Pip! I wanna be an adventurer too!",
@@ -203,8 +203,8 @@ export const npcs: NPC[] = [
     icon: "💬",
   },
   {
-    x: 18 * 32 + 8,
-    y: 31 * 32 + 8,
+    x: 42 * TILE_SIZE + 8,
+    y: 34 * TILE_SIZE + 8,
     name: "Dealer Yuki",
     dialogue: [
       "いらっしゃいませ! Welcome, traveler!",
@@ -216,8 +216,8 @@ export const npcs: NPC[] = [
     icon: "🎰",
   },
   {
-    x: 43 * 32 + 8,
-    y: 12 * 32 + 8,
+    x: 40 * TILE_SIZE + 8,
+    y: 11 * TILE_SIZE + 8,
     name: "Hermit Oden",
     dialogue: [
       "You found my cabin in the woods!",
@@ -230,8 +230,8 @@ export const npcs: NPC[] = [
     icon: "🏠",
   },
   {
-    x: 39 * 32 + 8,
-    y: 25 * 32 + 8,
+    x: 40 * TILE_SIZE + 8,
+    y: 35 * TILE_SIZE + 8,
     name: "Wanderer Sol",
     dialogue: [
       "The path south leads deep into the forest...",

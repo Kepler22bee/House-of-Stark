@@ -1,4 +1,4 @@
-import { TileType as T } from "./tiles";
+import { TileType as T, TILE_SIZE } from "./tiles";
 import { NPC } from "./map";
 
 // Shorthand aliases
@@ -104,11 +104,11 @@ export const casinoMap: number[][] = [
   [ cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw, cw ],
 ];
 
-// Casino interior NPCs — positions scaled to 60x40 map
+// Casino interior NPCs — positions for 30x30 tiled casino map
 export const casinoNpcs: NPC[] = [
   {
-    x: 4 * 32 + 8,
-    y: 9 * 32 + 8,
+    x: 5 * TILE_SIZE + 8,
+    y: 4 * TILE_SIZE + 8,
     name: "Coin Toss Dealer",
     dialogue: [
       "Welcome to the Coin Toss table!",
@@ -121,8 +121,8 @@ export const casinoNpcs: NPC[] = [
     icon: "🪙",
   },
   {
-    x: 56 * 32 + 8,
-    y: 9 * 32 + 8,
+    x: 22 * TILE_SIZE + 8,
+    y: 4 * TILE_SIZE + 8,
     name: "Price Dealer",
     dialogue: [
       "This is the Price Prediction table.",
@@ -135,8 +135,8 @@ export const casinoNpcs: NPC[] = [
     icon: "📈",
   },
   {
-    x: 30 * 32 + 8,
-    y: 2 * 32 + 8,
+    x: 14 * TILE_SIZE + 8,
+    y: 12 * TILE_SIZE + 8,
     name: "Bartender Jin",
     dialogue: [
       "Hey there, fresh face! Welcome to the Dragon.",
@@ -151,8 +151,8 @@ export const casinoNpcs: NPC[] = [
     icon: "🍶",
   },
   {
-    x: 2 * 32 + 8,
-    y: 4 * 32 + 8,
+    x: 2 * TILE_SIZE + 8,
+    y: 10 * TILE_SIZE + 8,
     name: "Cashier Mae",
     dialogue: [
       "Need chips? I handle all exchanges here.",
@@ -164,8 +164,8 @@ export const casinoNpcs: NPC[] = [
     icon: "💰",
   },
   {
-    x: 45 * 32 + 8,
-    y: 22 * 32 + 8,
+    x: 24 * TILE_SIZE + 8,
+    y: 10 * TILE_SIZE + 8,
     name: "Lucky Pete",
     dialogue: [
       "I've been on a hot streak all night!",
@@ -177,8 +177,8 @@ export const casinoNpcs: NPC[] = [
     icon: "🍀",
   },
   {
-    x: 25 * 32 + 8,
-    y: 18 * 32 + 8,
+    x: 8 * TILE_SIZE + 8,
+    y: 15 * TILE_SIZE + 8,
     name: "VIP Host Rena",
     dialogue: [
       "Welcome to the VIP section, high roller.",
@@ -191,8 +191,8 @@ export const casinoNpcs: NPC[] = [
     icon: "👑",
   },
   {
-    x: 15 * 32 + 8,
-    y: 30 * 32 + 8,
+    x: 5 * TILE_SIZE + 8,
+    y: 21 * TILE_SIZE + 8,
     name: "Gambler Ryo",
     dialogue: [
       "Psst... wanna know a secret?",
@@ -203,6 +203,46 @@ export const casinoNpcs: NPC[] = [
     color: "#607d8b",
     hairColor: "#455a64",
     icon: "🤫",
+  },
+  {
+    x: 20 * TILE_SIZE + 8,
+    y: 21 * TILE_SIZE + 8,
+    name: "Bouncer Kaz",
+    dialogue: [
+      "Keep it civil in here, alright?",
+      "No funny business near the tables.",
+      "The boss is always watching...",
+    ],
+    color: "#37474f",
+    hairColor: "#212121",
+    icon: "💪",
+  },
+  {
+    x: 26 * TILE_SIZE + 8,
+    y: 27 * TILE_SIZE + 8,
+    name: "Singer Lila",
+    dialogue: [
+      "♪ Lady luck, won't you smile tonight... ♪",
+      "Oh, hello! Just practicing my set.",
+      "The music keeps the gamblers happy.",
+      "And happy gamblers spend more coins!",
+    ],
+    color: "#ab47bc",
+    hairColor: "#ff7043",
+    icon: "🎤",
+  },
+  {
+    x: 16 * TILE_SIZE + 8,
+    y: 14 * TILE_SIZE + 8,
+    name: "Doorman Hiro",
+    dialogue: [
+      "The exit is right behind me, friend.",
+      "Press E on the EXIT marker to leave.",
+      "Come back anytime — luck awaits!",
+    ],
+    color: "#5d4037",
+    hairColor: "#3e2723",
+    icon: "🚪",
   },
 ];
 
