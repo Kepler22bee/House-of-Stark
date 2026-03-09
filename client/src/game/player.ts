@@ -24,8 +24,8 @@ export interface Player {
 
 export function createPlayer(): Player {
   return {
-    x: 4 * TILE_SIZE,
-    y: 8 * TILE_SIZE,
+    x: 27 * TILE_SIZE,
+    y: 30 * TILE_SIZE,
     direction: "up",
     moving: false,
     speed: 3,
